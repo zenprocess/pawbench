@@ -15,12 +15,18 @@ from pawbench import __version__
 from pawbench.banner import print_banner
 from pawbench.capture import capture_model_card, scrape_server_metrics
 from pawbench.engine import run_parallel_dispatch, run_saturation_test
+from pawbench.mock import (
+    MockEndpoint,
+    default_mock_model_card,
+    load_fixture,
+    save_fixture,
+)
 from pawbench.report import print_report
-from pawbench.sandbox import SandboxEvaluator
 from pawbench.scoring import useful_ratio
 from pawbench.types import BenchmarkReport, ScenarioReport
 
 SCENARIOS_DIR = Path(__file__).parent / "scenarios"
+FIXTURES_DIR = Path(__file__).parent / "fixtures"
 
 
 def _get_model(endpoint: str) -> str:
@@ -52,7 +58,7 @@ def _run_scenario(
     scenario: dict,
     concurrency_levels: list[int],
     runs: int,
-) -> tuple[ScenarioReport, list, list]:
+) -> tuple[ScenarioReport, list]:
     sr = ScenarioReport(scenario_id=scenario["id"], scenario_name=scenario["name"])
     all_cr = []
     all_agents = []
@@ -89,7 +95,7 @@ def _run_scenario(
     if steering_turns:
         sr.nudge_response_quality = sum(t.quality_score for t in steering_turns) / len(steering_turns)
 
-    return sr, all_cr, all_agents
+    return sr, all_cr
 
 
 def main():
@@ -120,14 +126,38 @@ def main():
     parser.add_argument("--no-saturation", action="store_true", help="Skip raw saturation test")
     parser.add_argument("--json", action="store_true", help="Output raw JSON instead of human-readable report")
     parser.add_argument(
-        "--sandbox", action="store_true", help="Run execution-based correctness scoring on generated code"
+        "--mock",
+        action="store_true",
+        help="Use recorded fixtures instead of a live endpoint (for CI)",
+    )
+    parser.add_argument(
+        "--record",
+        default=None,
+        metavar="DIR",
+        help="Record API responses as fixtures to DIR for future --mock runs",
     )
     parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     args = parser.parse_args()
 
     conc_levels = [int(c) for c in args.concurrency.split(",")]
-    model = _get_model(args.endpoint)
-    model_card = capture_model_card(args.endpoint)
+
+    # Mock / record mode setup
+    mock_endpoint: MockEndpoint | None = None
+    if args.mock:
+        fixture_path = FIXTURES_DIR / "sample_saturation.json"
+        fixture = load_fixture(fixture_path)
+        mock_endpoint = MockEndpoint(fixture)
+        model = mock_endpoint.model
+        model_card = default_mock_model_card()
+        model_card.model_name = model
+    else:
+        model = _get_model(args.endpoint)
+        model_card = capture_model_card(args.endpoint)
+
+    recorder: MockEndpoint | None = None
+    if args.record:
+        recorder = MockEndpoint()
+        recorder._fixture.model = model
 
     if not args.json:
         print_banner()
@@ -149,38 +179,55 @@ def main():
             if not args.json:
                 print(f"  Running: {scenario['name']} ...", end="", flush=True)
 
-            sr, crs, agents = _run_scenario(args.endpoint, model, scenario, conc_levels, args.runs)
-
-            # Sandbox correctness scoring (opt-in)
-            if args.sandbox and agents:
-                evaluator = SandboxEvaluator(scenario["id"])
-                sr.sandbox_score = evaluator.average_score(agents)
-
+            sr, crs = _run_scenario(args.endpoint, model, scenario, conc_levels, args.runs)
             scenario_reports.append(sr)
 
             for cr in crs:
                 all_concurrency_data.setdefault(cr.concurrency, []).append(cr)
 
-            sandbox_info = f"  sandbox={sr.sandbox_score:.0%}" if args.sandbox else ""
             if not args.json:
-                print(
-                    f" tok/s={sr.single_tok_s:.1f}  quality={sr.avg_quality:.0%}"
-                    f"  steer={sr.steering_rate:.0%}{sandbox_info}"
-                )
+                print(f" tok/s={sr.single_tok_s:.1f}  quality={sr.avg_quality:.0%}  steer={sr.steering_rate:.0%}")
 
     # Raw saturation test
     saturation_curve = []
     if not args.no_saturation:
         if not args.json:
             print("\n  Running: Raw throughput saturation ...", end="", flush=True)
-        sat_levels = sorted(set(conc_levels + [1, 2, 4, 8]))
-        saturation_curve = asyncio.run(run_saturation_test(args.endpoint, model, sat_levels))
+        if mock_endpoint:
+            saturation_curve = mock_endpoint.get_saturation_points()
+        else:
+            sat_levels = sorted(set(conc_levels + [1, 2, 4, 8]))
+            saturation_curve = asyncio.run(run_saturation_test(args.endpoint, model, sat_levels))
+            if recorder:
+                for pt in saturation_curve:
+                    recorder._fixture.saturation.append(
+                        {
+                            "concurrency": pt.concurrency,
+                            "tok_s": pt.tok_s,
+                            "per_agent": pt.per_agent,
+                            "wall_s": pt.wall_s,
+                            "total_tokens": pt.total_tokens,
+                        }
+                    )
         peak = max(saturation_curve, key=lambda p: p.tok_s) if saturation_curve else None
         if not args.json and peak:
             print(f" peak: {peak.tok_s:.1f} tok/s @ N={peak.concurrency}")
 
     # Server metrics
-    server_metrics = scrape_server_metrics(args.endpoint)
+    if mock_endpoint:
+        server_metrics: dict = {}
+    else:
+        server_metrics = scrape_server_metrics(args.endpoint)
+
+    # Save recorded fixture if --record was used
+    if recorder and args.record:
+        record_dir = Path(args.record)
+        fixture = recorder.build_fixture(name="recorded", model=model)
+        fixture.saturation = recorder._fixture.saturation
+        ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+        save_fixture(fixture, record_dir / f"recorded_{ts}.json")
+        if not args.json:
+            print(f"\n  Recorded fixture saved to {record_dir}/recorded_{ts}.json")
 
     # Build concurrency curve from scenarios
     conc_curve = []
@@ -201,9 +248,6 @@ def main():
     independent = [s for s in valid_scenarios if "independent" in s.scenario_id]
     nudged = [s for s in valid_scenarios if "nudge" in s.scenario_id]
 
-    sandbox_scores = [s.sandbox_score for s in scenario_reports if s.sandbox_score > 0]
-    avg_sandbox = sum(sandbox_scores) / len(sandbox_scores) if sandbox_scores else 0.0
-
     report = BenchmarkReport(
         tag=args.tag,
         timestamp=datetime.now(timezone.utc).isoformat(),
@@ -211,7 +255,6 @@ def main():
         model_card=model_card,
         runs=args.runs,
         scenarios=scenario_reports,
-        sandbox_score=avg_sandbox,
         saturation_curve=saturation_curve,
         concurrency_curve=conc_curve,
         server_metrics=server_metrics,

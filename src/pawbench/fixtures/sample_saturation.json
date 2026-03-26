@@ -1,0 +1,99 @@
+{
+  "name": "sample_saturation",
+  "description": "Sample recorded responses for the saturation throughput test with usage stats",
+  "model": "mock-model-fp8",
+  "responses": [
+    {
+      "status": 200,
+      "headers": {"content-type": "application/json"},
+      "body": {
+        "id": "cmpl-sat-001",
+        "object": "chat.completion",
+        "created": 1711900000,
+        "model": "mock-model-fp8",
+        "choices": [
+          {
+            "index": 0,
+            "message": {
+              "role": "assistant",
+              "content": "def quicksort(arr: list[int]) -> list[int]:\n    if len(arr) <= 1:\n        return arr\n    pivot = arr[len(arr) // 2]\n    left = [x for x in arr if x < pivot]\n    middle = [x for x in arr if x == pivot]\n    right = [x for x in arr if x > pivot]\n    return quicksort(left) + middle + quicksort(right)\n"
+            },
+            "finish_reason": "stop"
+          }
+        ],
+        "usage": {
+          "prompt_tokens": 24,
+          "completion_tokens": 128,
+          "total_tokens": 152
+        }
+      },
+      "latency_ms": 45.2
+    },
+    {
+      "status": 200,
+      "headers": {"content-type": "application/json"},
+      "body": {
+        "id": "cmpl-sat-002",
+        "object": "chat.completion",
+        "created": 1711900001,
+        "model": "mock-model-fp8",
+        "choices": [
+          {
+            "index": 0,
+            "message": {
+              "role": "assistant",
+              "content": "def quicksort(arr: list[int]) -> list[int]:\n    if len(arr) <= 1:\n        return arr\n    pivot = arr[0]\n    less = [x for x in arr[1:] if x <= pivot]\n    greater = [x for x in arr[1:] if x > pivot]\n    return quicksort(less) + [pivot] + quicksort(greater)\n"
+            },
+            "finish_reason": "stop"
+          }
+        ],
+        "usage": {
+          "prompt_tokens": 24,
+          "completion_tokens": 115,
+          "total_tokens": 139
+        }
+      },
+      "latency_ms": 42.8
+    },
+    {
+      "status": 200,
+      "headers": {"content-type": "application/json"},
+      "body": {
+        "id": "cmpl-sat-003",
+        "object": "chat.completion",
+        "created": 1711900002,
+        "model": "mock-model-fp8",
+        "choices": [
+          {
+            "index": 0,
+            "message": {
+              "role": "assistant",
+              "content": "from typing import TypeVar\n\nT = TypeVar('T')\n\ndef quicksort(arr: list[T]) -> list[T]:\n    if len(arr) <= 1:\n        return list(arr)\n    pivot = arr[len(arr) // 2]\n    left = [x for x in arr if x < pivot]\n    middle = [x for x in arr if x == pivot]\n    right = [x for x in arr if x > pivot]\n    return quicksort(left) + middle + quicksort(right)\n"
+            },
+            "finish_reason": "stop"
+          }
+        ],
+        "usage": {
+          "prompt_tokens": 24,
+          "completion_tokens": 142,
+          "total_tokens": 166
+        }
+      },
+      "latency_ms": 51.1
+    }
+  ],
+  "model_card": {
+    "model_name": "mock-model-fp8",
+    "serving": {"mode": "mock"},
+    "model_config": {"model_type": "mock", "architectures": ["MockForCausalLM"]},
+    "tuning": {},
+    "gpu": {},
+    "memory": {}
+  },
+  "saturation": [
+    {"concurrency": 1, "tok_s": 95.3, "per_agent": 95.3, "wall_s": 1.34, "total_tokens": 128},
+    {"concurrency": 2, "tok_s": 172.1, "per_agent": 86.0, "wall_s": 1.49, "total_tokens": 256},
+    {"concurrency": 4, "tok_s": 289.6, "per_agent": 72.4, "wall_s": 1.77, "total_tokens": 512},
+    {"concurrency": 8, "tok_s": 385.2, "per_agent": 48.2, "wall_s": 2.66, "total_tokens": 1024}
+  ]
+}
