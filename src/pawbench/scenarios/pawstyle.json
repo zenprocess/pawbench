@@ -1,7 +1,7 @@
 {
   "id": "pawstyle-dispatch",
-  "name": "PawStyle E-Commerce Dual Agent Dispatch",
-  "description": "Two parallel agents build a dog apparel store. Backend gets a steering event at turn 3.",
+  "name": "PawStyle by Lola — Dual Agent Dispatch (steering variant)",
+  "description": "Two parallel agents build Lola's boutique dog apparel store. Backend gets a steering event at turn 3 for Lola-tested breed-specific sizing. Inspired by @_justlolathings.",
 
   "agents": [
     {
@@ -11,7 +11,7 @@
         {
           "turn": 1,
           "role": "user",
-          "content": "Build a product listing page for PawStyle dog apparel store.\n\nRequirements:\n- HTML page with embedded CSS and JS\n- 6 products in a flexbox grid (3 columns, responsive):\n  1. Bandana - $12.00\n  2. Sweater - $35.00\n  3. Raincoat - $45.00\n  4. Booties - $28.00\n  5. Bow Tie - $15.00\n  6. Harness - $40.00\n- Each card: product name, price, placeholder image (300x200 gray), card shadow (0 2px 8px rgba(0,0,0,0.1))\n- Size selector dropdown per card: S, M, L, XL\n- 'Add to Cart' button per card (purple #7c3aed background, white text)\n- Fetch products from GET http://localhost:8080/api/products on page load\n- Fallback to hardcoded data if API unavailable\n\nWrite all files needed. Use the write_file tool for each file.",
+          "content": "Build a product listing page for PawStyle by Lola — a boutique dog apparel store inspired by Lola (@_justlolathings), the most fashionable pup on Instagram.\n\nRequirements:\n- HTML page with embedded CSS and JS\n- Header: \"PawStyle by Lola\" with tagline \"Where every pup is a fashionista\"\n- Purple gradient header (#7c3aed to #6d28d9)\n- 6 products in a flexbox grid (3 columns, responsive) on lavender (#e9d5ff) cards:\n  1. Lola's Signature Bandana - $12.00 (show \"Lola's Pick\" badge)\n  2. Cozy Knit Sweater - $35.00\n  3. Rainy Day Raincoat - $45.00\n  4. Adventure Booties (4-pack) - $28.00\n  5. Dapper Bow Tie - $15.00 (show \"Lola's Pick\" badge)\n  6. Walk-in-Style Harness - $40.00\n- Each card: product name, price, placeholder image (300x200 gray), card shadow (0 2px 8px rgba(0,0,0,0.1))\n- Size selector dropdown per card: XS (Chihuahua), S (Pom), M (Beagle), L (Lab), XL (Golden)\n- 'Add to Cart' button per card (purple #7c3aed background, white text)\n- Footer with link to Lola's Instagram: https://www.instagram.com/_justlolathings/\n- Fetch products from GET http://localhost:8080/api/products on page load\n- Fallback to hardcoded data if API unavailable\n\nWrite all files needed. Use the write_file tool for each file.",
           "tools": ["write_file", "read_file"],
           "expect": {
             "tool_calls_min": 1,
@@ -22,10 +22,10 @@
         {
           "turn": 2,
           "inject_tool_results": [
-            {"tool_call_id": "auto", "name": "write_file", "content": "{\"status\": \"ok\", \"path\": \"pawstyle/index.html\", \"bytes\": 4821}"}
+            {"tool_call_id": "auto", "name": "write_file", "content": "{\"status\": \"ok\", \"path\": \"pawstyle/index.html\", \"bytes\": 5200}"}
           ],
           "role": "tool_result",
-          "content": "Files written. Now add a Cart sidebar that slides in from the right when any 'Add to Cart' is clicked. It should show item name, selected size, price, and a total. Use the write_file tool to update the file.",
+          "content": "Files written. Lola's shop looks fantastic! Now add a Cart sidebar that slides in from the right when any 'Add to Cart' is clicked. It should show item name, selected size (with breed label), price, and a total. Use the write_file tool to update the file.",
           "tools": ["write_file", "read_file"],
           "expect": {
             "tool_calls_min": 1,
@@ -35,10 +35,10 @@
         {
           "turn": 3,
           "inject_tool_results": [
-            {"tool_call_id": "auto", "name": "write_file", "content": "{\"status\": \"ok\", \"path\": \"pawstyle/index.html\", \"bytes\": 7230}"}
+            {"tool_call_id": "auto", "name": "write_file", "content": "{\"status\": \"ok\", \"path\": \"pawstyle/index.html\", \"bytes\": 7800}"}
           ],
           "role": "tool_result",
-          "content": "Cart sidebar done. Backend team just added a size guide endpoint. Add a 'Size Guide' button next to each size selector that opens a modal. The modal fetches GET http://localhost:8080/api/size-guide/generic and displays the breed-specific sizing table. Use write_file to update.",
+          "content": "Cart sidebar done. Backend team just added a Lola-tested size guide endpoint! Add a 'Size Guide' button next to each size selector that opens a modal. The modal fetches GET http://localhost:8080/api/size-guide/generic and displays Lola's breed-specific sizing table with columns for size, breed example, chest, neck, and weight. Title the modal 'Lola-Tested Sizing for Every Breed'. Use write_file to update.",
           "tools": ["write_file", "read_file"],
           "expect": {
             "tool_calls_min": 1,
@@ -54,7 +54,7 @@
         {
           "turn": 1,
           "role": "user",
-          "content": "Build the REST API for PawStyle dog apparel store using Python stdlib (http.server, no frameworks).\n\nEndpoints:\n- GET /api/products — returns JSON array of all 6 products:\n  [{\"id\": 1, \"name\": \"Bandana\", \"price\": 12.00, \"sizes\": [\"S\",\"M\",\"L\",\"XL\"], \"image\": \"/img/bandana.jpg\"},\n   {\"id\": 2, \"name\": \"Sweater\", \"price\": 35.00, \"sizes\": [\"S\",\"M\",\"L\",\"XL\"], \"image\": \"/img/sweater.jpg\"},\n   {\"id\": 3, \"name\": \"Raincoat\", \"price\": 45.00, \"sizes\": [\"S\",\"M\",\"L\",\"XL\"], \"image\": \"/img/raincoat.jpg\"},\n   {\"id\": 4, \"name\": \"Booties\", \"price\": 28.00, \"sizes\": [\"S\",\"M\",\"L\",\"XL\"], \"image\": \"/img/booties.jpg\"},\n   {\"id\": 5, \"name\": \"Bow Tie\", \"price\": 15.00, \"sizes\": [\"S\",\"M\",\"L\",\"XL\"], \"image\": \"/img/bowtie.jpg\"},\n   {\"id\": 6, \"name\": \"Harness\", \"price\": 40.00, \"sizes\": [\"S\",\"M\",\"L\",\"XL\"], \"image\": \"/img/harness.jpg\"}]\n- GET /api/products/<id> — returns single product or 404\n- CORS headers on all responses (Access-Control-Allow-Origin: *)\n- Listen on port 8080\n\nUse write_file tool for each file.",
+          "content": "Build the REST API for PawStyle by Lola — a boutique dog apparel store — using Python stdlib (http.server, no frameworks).\n\nEndpoints:\n- GET /api/products — returns JSON array of all 6 products:\n  [{\"id\": 1, \"name\": \"Lola's Signature Bandana\", \"price\": 12.00, \"sizes\": [\"XS\",\"S\",\"M\",\"L\",\"XL\"], \"image\": \"/img/bandana.jpg\", \"lola_pick\": true},\n   {\"id\": 2, \"name\": \"Cozy Knit Sweater\", \"price\": 35.00, \"sizes\": [\"XS\",\"S\",\"M\",\"L\",\"XL\"], \"image\": \"/img/sweater.jpg\", \"lola_pick\": false},\n   {\"id\": 3, \"name\": \"Rainy Day Raincoat\", \"price\": 45.00, \"sizes\": [\"XS\",\"S\",\"M\",\"L\",\"XL\"], \"image\": \"/img/raincoat.jpg\", \"lola_pick\": false},\n   {\"id\": 4, \"name\": \"Adventure Booties (4-pack)\", \"price\": 28.00, \"sizes\": [\"XS\",\"S\",\"M\",\"L\",\"XL\"], \"image\": \"/img/booties.jpg\", \"lola_pick\": false},\n   {\"id\": 5, \"name\": \"Dapper Bow Tie\", \"price\": 15.00, \"sizes\": [\"XS\",\"S\",\"M\",\"L\",\"XL\"], \"image\": \"/img/bowtie.jpg\", \"lola_pick\": true},\n   {\"id\": 6, \"name\": \"Walk-in-Style Harness\", \"price\": 40.00, \"sizes\": [\"XS\",\"S\",\"M\",\"L\",\"XL\"], \"image\": \"/img/harness.jpg\", \"lola_pick\": false}]\n- GET /api/products/<id> — returns single product or 404\n- CORS headers on all responses (Access-Control-Allow-Origin: *)\n- Listen on port 8080\n\nUse write_file tool for each file.",
           "tools": ["write_file", "run_command"],
           "expect": {
             "tool_calls_min": 1,
@@ -65,10 +65,10 @@
         {
           "turn": 2,
           "inject_tool_results": [
-            {"tool_call_id": "auto", "name": "write_file", "content": "{\"status\": \"ok\", \"path\": \"pawstyle-api/server.py\", \"bytes\": 3200}"}
+            {"tool_call_id": "auto", "name": "write_file", "content": "{\"status\": \"ok\", \"path\": \"pawstyle-api/server.py\", \"bytes\": 3500}"}
           ],
           "role": "tool_result",
-          "content": "Server file written. Add input validation — product IDs must be 1-6, return proper 400 for invalid IDs (not just 404). Add a health endpoint GET /api/health that returns {\"status\": \"ok\", \"products_count\": 6}. Use write_file.",
+          "content": "Server file written. Add input validation — product IDs must be 1-6, return proper 400 for invalid IDs (not just 404). Add a health endpoint GET /api/health that returns {\"status\": \"ok\", \"store\": \"PawStyle by Lola\", \"products_count\": 6}. Use write_file.",
           "tools": ["write_file", "run_command"],
           "expect": {
             "tool_calls_min": 1,
@@ -79,10 +79,10 @@
           "turn": 3,
           "steering_event": true,
           "inject_tool_results": [
-            {"tool_call_id": "auto", "name": "write_file", "content": "{\"status\": \"ok\", \"path\": \"pawstyle-api/server.py\", \"bytes\": 4100}"}
+            {"tool_call_id": "auto", "name": "write_file", "content": "{\"status\": \"ok\", \"path\": \"pawstyle-api/server.py\", \"bytes\": 4400}"}
           ],
           "role": "tool_result",
-          "content": "STEERING EVENT: Frontend team just added a Size Guide button to each product card. You need to add a new endpoint:\n\nGET /api/size-guide/:breed\n\nReturn JSON:\n{\"breed\": \"<breed>\", \"sizes\": {\"S\": {\"chest\": \"14-16in\", \"neck\": \"10-12in\", \"weight\": \"5-10lbs\"}, \"M\": {\"chest\": \"16-20in\", \"neck\": \"12-14in\", \"weight\": \"10-25lbs\"}, \"L\": {\"chest\": \"20-26in\", \"neck\": \"14-18in\", \"weight\": \"25-55lbs\"}, \"XL\": {\"chest\": \"26-32in\", \"neck\": \"18-22in\", \"weight\": \"55-90lbs\"}}}\n\nFor breed='generic', return the default table above. For specific breeds (labrador, poodle, bulldog, chihuahua), adjust the measurements. Unknown breeds return the generic table.\n\nThis is urgent — frontend is waiting. Use write_file to update server.py.",
+          "content": "STEERING EVENT: Frontend team just added a Size Guide button to each product card. You need to add Lola's breed-specific sizing endpoint:\n\nGET /api/size-guide/:breed\n\nReturn JSON with Lola-tested sizing for every breed:\n{\"breed\": \"<breed>\", \"tagline\": \"Lola-tested sizing for every breed\", \"sizes\": {\"XS\": {\"breed_example\": \"Chihuahua\", \"chest\": \"10-13in\", \"neck\": \"8-10in\", \"weight\": \"2-6lbs\"}, \"S\": {\"breed_example\": \"Pomeranian\", \"chest\": \"13-16in\", \"neck\": \"10-12in\", \"weight\": \"6-12lbs\"}, \"M\": {\"breed_example\": \"Beagle\", \"chest\": \"16-22in\", \"neck\": \"12-16in\", \"weight\": \"12-35lbs\"}, \"L\": {\"breed_example\": \"Labrador\", \"chest\": \"22-28in\", \"neck\": \"16-20in\", \"weight\": \"35-70lbs\"}, \"XL\": {\"breed_example\": \"Golden Retriever\", \"chest\": \"28-34in\", \"neck\": \"20-24in\", \"weight\": \"70-100lbs\"}}}\n\nFor breed='generic', return the default table above. For specific breeds (labrador, pomeranian, beagle, chihuahua, golden), adjust the measurements to be breed-specific. Unknown breeds return the generic table.\n\nThis is urgent — frontend is waiting on Lola's sizing guide. Use write_file to update server.py.",
           "tools": ["write_file", "run_command"],
           "expect": {
             "tool_calls_min": 1,
