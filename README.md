@@ -9,11 +9,11 @@
 [![Documentation](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://zenprocess.github.io/pawbench/)
 
 ```text
-       /\_/\
-      ( o.o )   PawBench
-       > ^ <    4-dimensional LLM inference benchmark
-      /|   |\   "More bark than bite"
-     (_|   |_)
+    / \__
+   (    @\___    PawBench
+  /         O   4-dimensional LLM inference benchmark
+ /   (_____/    "More bark than bite"
+/_____/   U
 ```
 
 **Because your model deserves a benchmark with more bark than bite.**

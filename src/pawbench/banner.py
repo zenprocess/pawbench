@@ -15,10 +15,10 @@ _RESET = "\033[0m"
 def print_banner() -> None:
     """Print the PawBench ASCII art banner to stdout."""
     paw = f"""{_PURPLE}{_BOLD}
-       /\\_/\\
-      ( o.o )   {_LAVENDER}PawBench {_RESET}{_DIM}v{__version__}{_RESET}
-   {_PURPLE}{_BOLD}   > ^ <    {_LAVENDER}4-dimensional LLM inference benchmark{_RESET}
-   {_PURPLE}{_BOLD}  /|   |\\   {_DIM}"More bark than bite"{_RESET}
-   {_PURPLE}{_BOLD} (_|   |_){_RESET}
+    / \\__
+   (    @\\___    {_LAVENDER}PawBench {_RESET}{_DIM}v{__version__}{_RESET}
+   {_PURPLE}{_BOLD} /         O   {_LAVENDER}4-dimensional LLM inference benchmark{_RESET}
+   {_PURPLE}{_BOLD}/   (_____/    {_DIM}"More bark than bite"{_RESET}
+   {_PURPLE}{_BOLD}/_____/   U{_RESET}
 """
     print(paw)
