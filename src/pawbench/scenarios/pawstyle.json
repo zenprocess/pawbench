@@ -1,0 +1,142 @@
+{
+  "id": "pawstyle-dispatch",
+  "name": "PawStyle E-Commerce Dual Agent Dispatch",
+  "description": "Two parallel agents build a dog apparel store. Backend gets a steering event at turn 3.",
+
+  "agents": [
+    {
+      "id": "ts-fullstack",
+      "name": "TypeScript Fullstack Agent",
+      "turns": [
+        {
+          "turn": 1,
+          "role": "user",
+          "content": "Build a product listing page for PawStyle dog apparel store.\n\nRequirements:\n- HTML page with embedded CSS and JS\n- 6 products in a flexbox grid (3 columns, responsive):\n  1. Bandana - $12.00\n  2. Sweater - $35.00\n  3. Raincoat - $45.00\n  4. Booties - $28.00\n  5. Bow Tie - $15.00\n  6. Harness - $40.00\n- Each card: product name, price, placeholder image (300x200 gray), card shadow (0 2px 8px rgba(0,0,0,0.1))\n- Size selector dropdown per card: S, M, L, XL\n- 'Add to Cart' button per card (purple #7c3aed background, white text)\n- Fetch products from GET http://localhost:8080/api/products on page load\n- Fallback to hardcoded data if API unavailable\n\nWrite all files needed. Use the write_file tool for each file.",
+          "tools": ["write_file", "read_file"],
+          "expect": {
+            "tool_calls_min": 1,
+            "tool_name_any": ["write_file"],
+            "output_mentions": ["html", "flexbox", "grid"]
+          }
+        },
+        {
+          "turn": 2,
+          "inject_tool_results": [
+            {"tool_call_id": "auto", "name": "write_file", "content": "{\"status\": \"ok\", \"path\": \"pawstyle/index.html\", \"bytes\": 4821}"}
+          ],
+          "role": "tool_result",
+          "content": "Files written. Now add a Cart sidebar that slides in from the right when any 'Add to Cart' is clicked. It should show item name, selected size, price, and a total. Use the write_file tool to update the file.",
+          "tools": ["write_file", "read_file"],
+          "expect": {
+            "tool_calls_min": 1,
+            "output_mentions": ["cart", "sidebar", "slide"]
+          }
+        },
+        {
+          "turn": 3,
+          "inject_tool_results": [
+            {"tool_call_id": "auto", "name": "write_file", "content": "{\"status\": \"ok\", \"path\": \"pawstyle/index.html\", \"bytes\": 7230}"}
+          ],
+          "role": "tool_result",
+          "content": "Cart sidebar done. Backend team just added a size guide endpoint. Add a 'Size Guide' button next to each size selector that opens a modal. The modal fetches GET http://localhost:8080/api/size-guide/generic and displays the breed-specific sizing table. Use write_file to update.",
+          "tools": ["write_file", "read_file"],
+          "expect": {
+            "tool_calls_min": 1,
+            "output_mentions": ["size-guide", "modal", "fetch"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "go-backend",
+      "name": "Go Backend Agent",
+      "turns": [
+        {
+          "turn": 1,
+          "role": "user",
+          "content": "Build the REST API for PawStyle dog apparel store using Python stdlib (http.server, no frameworks).\n\nEndpoints:\n- GET /api/products — returns JSON array of all 6 products:\n  [{\"id\": 1, \"name\": \"Bandana\", \"price\": 12.00, \"sizes\": [\"S\",\"M\",\"L\",\"XL\"], \"image\": \"/img/bandana.jpg\"},\n   {\"id\": 2, \"name\": \"Sweater\", \"price\": 35.00, \"sizes\": [\"S\",\"M\",\"L\",\"XL\"], \"image\": \"/img/sweater.jpg\"},\n   {\"id\": 3, \"name\": \"Raincoat\", \"price\": 45.00, \"sizes\": [\"S\",\"M\",\"L\",\"XL\"], \"image\": \"/img/raincoat.jpg\"},\n   {\"id\": 4, \"name\": \"Booties\", \"price\": 28.00, \"sizes\": [\"S\",\"M\",\"L\",\"XL\"], \"image\": \"/img/booties.jpg\"},\n   {\"id\": 5, \"name\": \"Bow Tie\", \"price\": 15.00, \"sizes\": [\"S\",\"M\",\"L\",\"XL\"], \"image\": \"/img/bowtie.jpg\"},\n   {\"id\": 6, \"name\": \"Harness\", \"price\": 40.00, \"sizes\": [\"S\",\"M\",\"L\",\"XL\"], \"image\": \"/img/harness.jpg\"}]\n- GET /api/products/<id> — returns single product or 404\n- CORS headers on all responses (Access-Control-Allow-Origin: *)\n- Listen on port 8080\n\nUse write_file tool for each file.",
+          "tools": ["write_file", "run_command"],
+          "expect": {
+            "tool_calls_min": 1,
+            "tool_name_any": ["write_file"],
+            "output_mentions": ["products", "CORS", "8080"]
+          }
+        },
+        {
+          "turn": 2,
+          "inject_tool_results": [
+            {"tool_call_id": "auto", "name": "write_file", "content": "{\"status\": \"ok\", \"path\": \"pawstyle-api/server.py\", \"bytes\": 3200}"}
+          ],
+          "role": "tool_result",
+          "content": "Server file written. Add input validation — product IDs must be 1-6, return proper 400 for invalid IDs (not just 404). Add a health endpoint GET /api/health that returns {\"status\": \"ok\", \"products_count\": 6}. Use write_file.",
+          "tools": ["write_file", "run_command"],
+          "expect": {
+            "tool_calls_min": 1,
+            "output_mentions": ["validation", "health", "400"]
+          }
+        },
+        {
+          "turn": 3,
+          "steering_event": true,
+          "inject_tool_results": [
+            {"tool_call_id": "auto", "name": "write_file", "content": "{\"status\": \"ok\", \"path\": \"pawstyle-api/server.py\", \"bytes\": 4100}"}
+          ],
+          "role": "tool_result",
+          "content": "STEERING EVENT: Frontend team just added a Size Guide button to each product card. You need to add a new endpoint:\n\nGET /api/size-guide/:breed\n\nReturn JSON:\n{\"breed\": \"<breed>\", \"sizes\": {\"S\": {\"chest\": \"14-16in\", \"neck\": \"10-12in\", \"weight\": \"5-10lbs\"}, \"M\": {\"chest\": \"16-20in\", \"neck\": \"12-14in\", \"weight\": \"10-25lbs\"}, \"L\": {\"chest\": \"20-26in\", \"neck\": \"14-18in\", \"weight\": \"25-55lbs\"}, \"XL\": {\"chest\": \"26-32in\", \"neck\": \"18-22in\", \"weight\": \"55-90lbs\"}}}\n\nFor breed='generic', return the default table above. For specific breeds (labrador, poodle, bulldog, chihuahua), adjust the measurements. Unknown breeds return the generic table.\n\nThis is urgent — frontend is waiting. Use write_file to update server.py.",
+          "tools": ["write_file", "run_command"],
+          "expect": {
+            "tool_calls_min": 1,
+            "output_mentions": ["size-guide", "breed", "generic"],
+            "steering_followed": true
+          }
+        }
+      ]
+    }
+  ],
+
+  "tools_schema": [
+    {
+      "type": "function",
+      "function": {
+        "name": "write_file",
+        "description": "Write content to a file, creating directories as needed",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "path": {"type": "string", "description": "File path relative to workspace"},
+            "content": {"type": "string", "description": "File content to write"}
+          },
+          "required": ["path", "content"]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "read_file",
+        "description": "Read a file from the workspace",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "path": {"type": "string", "description": "File path relative to workspace"}
+          },
+          "required": ["path"]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "run_command",
+        "description": "Run a shell command in the workspace",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "command": {"type": "string", "description": "Shell command to execute"}
+          },
+          "required": ["command"]
+        }
+      }
+    }
+  ]
+}

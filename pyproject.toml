@@ -1,0 +1,41 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "pawbench"
+version = "0.1.0"
+description = "4-dimensional LLM inference benchmark — multi-turn, multi-agent, parallel dispatch with tool calling"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.10"
+authors = [
+    {name = "ZenProcess", email = "oss@zp.digital"},
+]
+keywords = ["llm", "benchmark", "vllm", "inference", "tool-calling", "openai"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+    "aiohttp>=3.9",
+    "requests>=2.28",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-asyncio>=0.21",
+]
+
+[project.scripts]
+pawbench = "pawbench.cli:main"
+
+[project.urls]
+Repository = "https://github.com/zenprocess/pawbench"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/pawbench"]

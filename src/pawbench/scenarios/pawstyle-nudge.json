@@ -1,0 +1,144 @@
+{
+  "id": "pawstyle-nudge",
+  "name": "PawStyle Cross-Agent Nudge (frontend drives backend)",
+  "description": "Frontend adds features that require backend changes. Backend receives nudge events simulating cross-agent communication. Tests adaptability, context injection handling, and coordination quality.",
+
+  "agents": [
+    {
+      "id": "ts-fullstack",
+      "name": "Frontend Agent (driver)",
+      "turns": [
+        {
+          "turn": 1,
+          "role": "user",
+          "content": "Build the PawStyle product listing page.\n\n- Single HTML file, embedded CSS/JS\n- Flexbox grid 3 columns, 6 products: Bandana $12, Sweater $35, Raincoat $45, Booties $28, Bow Tie $15, Harness $40\n- Cards with shadow, size selector S/M/L/XL, Add to Cart button (#7c3aed)\n- Fetch from GET http://localhost:8080/api/products, fallback hardcoded\n\nUse write_file.",
+          "tools": ["write_file"],
+          "expect": {
+            "tool_calls_min": 1,
+            "tool_name_any": ["write_file"],
+            "output_mentions": ["html", "products"]
+          }
+        },
+        {
+          "turn": 2,
+          "inject_tool_results": [
+            {"tool_call_id": "auto", "name": "write_file", "content": "{\"status\": \"ok\", \"path\": \"pawstyle/index.html\", \"bytes\": 4821}"}
+          ],
+          "role": "tool_result",
+          "content": "Done. The product cards look great but stakeholders want a 'Wishlist' feature. Add a heart icon toggle on each card. When toggled, POST to http://localhost:8080/api/wishlist with {\"product_id\": <id>}. Show wishlist count in the header. Persist in localStorage as backup if API fails. Use write_file.",
+          "tools": ["write_file"],
+          "expect": {
+            "tool_calls_min": 1,
+            "output_mentions": ["wishlist", "heart", "POST"]
+          }
+        },
+        {
+          "turn": 3,
+          "inject_tool_results": [
+            {"tool_call_id": "auto", "name": "write_file", "content": "{\"status\": \"ok\", \"path\": \"pawstyle/index.html\", \"bytes\": 7200}"}
+          ],
+          "role": "tool_result",
+          "content": "Wishlist done. One more feature: add a 'Compare' checkbox on each card. When 2+ products are checked, show a floating comparison bar at the bottom with a 'Compare Selected' button. Clicking it opens a modal with a side-by-side table showing name, price, available sizes, and a 'Best Value' badge on the cheapest item. This is purely frontend — no API needed. Use write_file.",
+          "tools": ["write_file"],
+          "expect": {
+            "tool_calls_min": 1,
+            "output_mentions": ["compare", "modal", "table"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "go-backend",
+      "name": "Backend Agent (receives nudges)",
+      "turns": [
+        {
+          "turn": 1,
+          "role": "user",
+          "content": "Build the PawStyle REST API using Python stdlib http.server.\n\n- GET /api/products — JSON array of 6 products with id, name, price, sizes, image\n- GET /api/products/<id> — single product or 404\n- CORS on all responses\n- Port 8080\n\nUse write_file.",
+          "tools": ["write_file", "run_command"],
+          "expect": {
+            "tool_calls_min": 1,
+            "tool_name_any": ["write_file"],
+            "output_mentions": ["products", "CORS"]
+          }
+        },
+        {
+          "turn": 2,
+          "steering_event": true,
+          "inject_tool_results": [
+            {"tool_call_id": "auto", "name": "write_file", "content": "{\"status\": \"ok\", \"path\": \"pawstyle-api/server.py\", \"bytes\": 3200}"}
+          ],
+          "role": "tool_result",
+          "content": "NUDGE FROM FRONTEND AGENT: The frontend just added a Wishlist heart toggle on each product card. It POSTs to /api/wishlist. You need to implement:\n\n1. POST /api/wishlist — body {\"product_id\": <int>}. Toggle product in wishlist. Return {\"wishlisted\": true/false, \"wishlist\": [<product_ids>]}. Validate product_id exists.\n2. GET /api/wishlist — return current wishlist as {\"wishlist\": [<product_ids>], \"count\": <n>}\n3. Store wishlist in-memory (list/set).\n\nThis is blocking the frontend team. Use write_file to update server.py.",
+          "tools": ["write_file", "run_command"],
+          "expect": {
+            "tool_calls_min": 1,
+            "output_mentions": ["wishlist", "POST", "toggle"],
+            "steering_followed": true
+          }
+        },
+        {
+          "turn": 3,
+          "steering_event": true,
+          "inject_tool_results": [
+            {"tool_call_id": "auto", "name": "write_file", "content": "{\"status\": \"ok\", \"path\": \"pawstyle-api/server.py\", \"bytes\": 4600}"}
+          ],
+          "role": "tool_result",
+          "content": "NUDGE FROM FRONTEND AGENT: Frontend added a Size Guide button. Need a new endpoint:\n\nGET /api/size-guide/<breed>\n\nReturn breed-specific sizing:\n{\"breed\": \"<breed>\", \"sizes\": {\"S\": {\"chest\": \"14-16in\", \"neck\": \"10-12in\", \"weight\": \"5-10lbs\"}, \"M\": {\"chest\": \"16-20in\", \"neck\": \"12-14in\", \"weight\": \"10-25lbs\"}, \"L\": {\"chest\": \"20-26in\", \"neck\": \"14-18in\", \"weight\": \"25-55lbs\"}, \"XL\": {\"chest\": \"26-32in\", \"neck\": \"18-22in\", \"weight\": \"55-90lbs\"}}}\n\nSupport breeds: generic (default), labrador, poodle, bulldog, chihuahua. Unknown breeds return generic. Use write_file.",
+          "tools": ["write_file", "run_command"],
+          "expect": {
+            "tool_calls_min": 1,
+            "output_mentions": ["size-guide", "breed", "generic"],
+            "steering_followed": true
+          }
+        }
+      ]
+    }
+  ],
+
+  "tools_schema": [
+    {
+      "type": "function",
+      "function": {
+        "name": "write_file",
+        "description": "Write content to a file, creating directories as needed",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "path": {"type": "string", "description": "File path relative to workspace"},
+            "content": {"type": "string", "description": "File content to write"}
+          },
+          "required": ["path", "content"]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "read_file",
+        "description": "Read a file from the workspace",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "path": {"type": "string", "description": "File path relative to workspace"}
+          },
+          "required": ["path"]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "run_command",
+        "description": "Run a shell command in the workspace",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "command": {"type": "string", "description": "Shell command to execute"}
+          },
+          "required": ["command"]
+        }
+      }
+    }
+  ]
+}

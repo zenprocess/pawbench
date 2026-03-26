@@ -1,0 +1,126 @@
+{
+  "id": "pawstyle-independent",
+  "name": "PawStyle Independent Streams (no cross-talk)",
+  "description": "Frontend and backend work independently. No steering events. Tests pure parallel throughput + quality in isolation.",
+
+  "agents": [
+    {
+      "id": "ts-fullstack",
+      "name": "Frontend Agent",
+      "turns": [
+        {
+          "turn": 1,
+          "role": "user",
+          "content": "Build the PawStyle product listing page.\n\nRequirements:\n- Single HTML file with embedded CSS/JS\n- Flexbox grid, 3 columns, responsive (1 col on mobile)\n- 6 dog apparel products: Bandana $12, Sweater $35, Raincoat $45, Booties $28, Bow Tie $15, Harness $40\n- Each card: name, price, gray placeholder image 300x200, box-shadow 0 2px 8px rgba(0,0,0,0.1)\n- Size selector per card: S/M/L/XL dropdown\n- Purple (#7c3aed) 'Add to Cart' button, white text, rounded corners\n- Fetch from GET http://localhost:8080/api/products on load, fallback to hardcoded\n\nUse write_file for each file.",
+          "tools": ["write_file"],
+          "expect": {
+            "tool_calls_min": 1,
+            "tool_name_any": ["write_file"],
+            "output_mentions": ["html", "flexbox"]
+          }
+        },
+        {
+          "turn": 2,
+          "inject_tool_results": [
+            {"tool_call_id": "auto", "name": "write_file", "content": "{\"status\": \"ok\", \"path\": \"pawstyle/index.html\", \"bytes\": 4821}"}
+          ],
+          "role": "tool_result",
+          "content": "File written. Now add a slide-in Cart sidebar from the right. Shows item name, selected size, price, quantity +/- buttons, line totals, and a grand total. Cart persists in localStorage. Use write_file to update.",
+          "tools": ["write_file"],
+          "expect": {
+            "tool_calls_min": 1,
+            "output_mentions": ["cart", "localStorage"]
+          }
+        },
+        {
+          "turn": 3,
+          "inject_tool_results": [
+            {"tool_call_id": "auto", "name": "write_file", "content": "{\"status\": \"ok\", \"path\": \"pawstyle/index.html\", \"bytes\": 7500}"}
+          ],
+          "role": "tool_result",
+          "content": "Done. Final step: add a checkout flow. When user clicks 'Checkout' in cart, POST cart contents to http://localhost:8080/api/orders as JSON. Show a confirmation modal with order number (random 6-digit). Handle API errors gracefully with a retry button. Use write_file.",
+          "tools": ["write_file"],
+          "expect": {
+            "tool_calls_min": 1,
+            "output_mentions": ["checkout", "order", "POST"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "go-backend",
+      "name": "Backend Agent",
+      "turns": [
+        {
+          "turn": 1,
+          "role": "user",
+          "content": "Build the PawStyle REST API using Python stdlib http.server.\n\nEndpoints:\n- GET /api/products — JSON array of 6 products (Bandana $12, Sweater $35, Raincoat $45, Booties $28, Bow Tie $15, Harness $40) with id, name, price, sizes [S,M,L,XL], image path\n- GET /api/products/<id> — single product, 404 if not found\n- CORS headers on all responses\n- Port 8080\n\nUse write_file.",
+          "tools": ["write_file", "run_command"],
+          "expect": {
+            "tool_calls_min": 1,
+            "tool_name_any": ["write_file"],
+            "output_mentions": ["products", "8080"]
+          }
+        },
+        {
+          "turn": 2,
+          "inject_tool_results": [
+            {"tool_call_id": "auto", "name": "write_file", "content": "{\"status\": \"ok\", \"path\": \"pawstyle-api/server.py\", \"bytes\": 3200}"}
+          ],
+          "role": "tool_result",
+          "content": "Written. Add POST /api/orders endpoint. Accepts JSON body {\"items\": [{\"product_id\": 1, \"size\": \"M\", \"quantity\": 2}]}. Validate product IDs exist, sizes are valid, quantities > 0. Return {\"order_id\": \"<random 6 digits>\", \"total\": <calculated total>, \"items_count\": <n>}. Return 400 with error message for invalid input. Use write_file.",
+          "tools": ["write_file", "run_command"],
+          "expect": {
+            "tool_calls_min": 1,
+            "output_mentions": ["orders", "validate", "400"]
+          }
+        },
+        {
+          "turn": 3,
+          "inject_tool_results": [
+            {"tool_call_id": "auto", "name": "write_file", "content": "{\"status\": \"ok\", \"path\": \"pawstyle-api/server.py\", \"bytes\": 4800}"}
+          ],
+          "role": "tool_result",
+          "content": "Done. Final step: add GET /api/health returning {\"status\": \"ok\", \"uptime\": <seconds since start>, \"orders_count\": <total orders placed>, \"products_count\": 6}. Also add request logging — print each request method, path, status code, and response time in ms to stdout. Use write_file.",
+          "tools": ["write_file", "run_command"],
+          "expect": {
+            "tool_calls_min": 1,
+            "output_mentions": ["health", "uptime", "logging"]
+          }
+        }
+      ]
+    }
+  ],
+
+  "tools_schema": [
+    {
+      "type": "function",
+      "function": {
+        "name": "write_file",
+        "description": "Write content to a file, creating directories as needed",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "path": {"type": "string", "description": "File path relative to workspace"},
+            "content": {"type": "string", "description": "File content to write"}
+          },
+          "required": ["path", "content"]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "run_command",
+        "description": "Run a shell command in the workspace",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "command": {"type": "string", "description": "Shell command to execute"}
+          },
+          "required": ["command"]
+        }
+      }
+    }
+  ]
+}
