@@ -34,6 +34,10 @@ dev = [
     "mypy>=1.10",
     "build>=1.0",
 ]
+docs = [
+    "mkdocs-material>=9.0",
+    "mkdocs-glightbox",
+]
 
 [project.scripts]
 pawbench = "pawbench.cli:main"

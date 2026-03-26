@@ -1,0 +1,55 @@
+site_name: PawBench
+site_url: https://zenprocess.github.io/pawbench/
+site_description: 4-dimensional LLM inference benchmark -- multi-turn, multi-agent, parallel dispatch with tool calling
+repo_url: https://github.com/zenprocess/pawbench
+repo_name: zenprocess/pawbench
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: deep purple
+      accent: purple
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: deep purple
+      accent: purple
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.instant
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - content.code.copy
+    - toc.follow
+
+plugins:
+  - search
+  - glightbox
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - tables
+  - attr_list
+  - toc:
+      permalink: true
+
+nav:
+  - Home: index.md
+  - Getting Started: getting-started.md
+  - Scenarios: scenarios.md
+  - Dimensions: dimensions.md
+  - Comparing Configs: comparing.md
+  - API Reference: api.md
+  - Contributing: contributing.md

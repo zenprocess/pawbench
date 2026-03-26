@@ -6,6 +6,15 @@
 [![PyPI version](https://badge.fury.io/py/pawbench.svg)](https://pypi.org/project/pawbench/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+[![Documentation](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://zenprocess.github.io/pawbench/)
+
+```text
+       /\_/\
+      ( o.o )   PawBench
+       > ^ <    4-dimensional LLM inference benchmark
+      /|   |\   "More bark than bite"
+     (_|   |_)
+```
 
 **Because your model deserves a benchmark with more bark than bite.**
 
