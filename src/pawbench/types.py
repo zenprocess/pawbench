@@ -72,7 +72,7 @@ class ScenarioReport:
     peak_concurrency: int = 0
     avg_ttft_ms: float = 0.0
     avg_quality: float = 0.0
-    cacp_rate: float = 0.0
+    format_compliance_rate: float = 0.0
     tool_accuracy: float = 0.0
     useful_ratio: float = 0.0
     total_tokens: int = 0

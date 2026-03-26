@@ -4,13 +4,14 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
-import sys
 from dataclasses import asdict
 from datetime import datetime, timezone
 from pathlib import Path
 
 import requests
 
+from pawbench import __version__
+from pawbench.banner import print_banner
 from pawbench.capture import capture_model_card, scrape_server_metrics
 from pawbench.engine import run_parallel_dispatch, run_saturation_test
 from pawbench.report import print_report
@@ -43,8 +44,10 @@ def _load_scenarios(scenario_paths: list[Path] | None = None) -> list[dict]:
     return scenarios
 
 
-def _run_scenario(endpoint: str, model: str, scenario: dict,
-                  concurrency_levels: list[int], runs: int) -> ScenarioReport:
+def _run_scenario(
+    endpoint: str, model: str, scenario: dict,
+    concurrency_levels: list[int], runs: int,
+) -> tuple[ScenarioReport, list]:
     sr = ScenarioReport(scenario_id=scenario["id"], scenario_name=scenario["name"])
     all_cr = []
     all_agents = []
@@ -107,6 +110,8 @@ def main():
                         help="Skip raw saturation test")
     parser.add_argument("--json", action="store_true",
                         help="Output raw JSON instead of human-readable report")
+    parser.add_argument("--version", action="version",
+                        version=f"%(prog)s {__version__}")
     args = parser.parse_args()
 
     conc_levels = [int(c) for c in args.concurrency.split(",")]
@@ -114,7 +119,7 @@ def main():
     model_card = capture_model_card(args.endpoint)
 
     if not args.json:
-        print(f"  PawBench v0.1.0")
+        print_banner()
         print(f"  Model: {model}  |  Endpoint: {args.endpoint}")
         print(f"  Concurrency: {conc_levels}  |  Runs: {args.runs}")
         print()
@@ -146,7 +151,7 @@ def main():
     saturation_curve = []
     if not args.no_saturation:
         if not args.json:
-            print(f"\n  Running: Raw throughput saturation ...", end="", flush=True)
+            print("\n  Running: Raw throughput saturation ...", end="", flush=True)
         sat_levels = sorted(set(conc_levels + [1, 2, 4, 8]))
         saturation_curve = asyncio.run(run_saturation_test(args.endpoint, model, sat_levels))
         peak = max(saturation_curve, key=lambda p: p.tok_s) if saturation_curve else None
@@ -191,7 +196,9 @@ def main():
         },
         dim2_quality={
             "avg_quality": sum(s.avg_quality for s in valid_scenarios) / max(len(valid_scenarios), 1),
-            "format_compliance_rate": sum(s.format_compliance_rate for s in valid_scenarios) / max(len(valid_scenarios), 1),
+            "format_compliance_rate": (
+                sum(s.format_compliance_rate for s in valid_scenarios) / max(len(valid_scenarios), 1)
+            ),
             "tool_accuracy": sum(s.tool_accuracy for s in valid_scenarios) / max(len(valid_scenarios), 1),
         },
         dim3_efficiency={

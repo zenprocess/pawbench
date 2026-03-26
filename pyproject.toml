@@ -29,13 +29,60 @@ dependencies = [
 dev = [
     "pytest>=7.0",
     "pytest-asyncio>=0.21",
+    "pytest-cov>=4.0",
+    "ruff>=0.4",
+    "mypy>=1.10",
+    "build>=1.0",
 ]
 
 [project.scripts]
 pawbench = "pawbench.cli:main"
+pawbench-compare = "pawbench.compare:main"
 
 [project.urls]
 Repository = "https://github.com/zenprocess/pawbench"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/pawbench"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"src/pawbench/scenarios" = "pawbench/scenarios"
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W"]
+
+[tool.ruff.lint.per-file-ignores]
+# Pre-existing files not modified in this PR
+"src/pawbench/engine.py" = ["F401", "I001"]
+"src/pawbench/capture.py" = ["I001"]
+"src/pawbench/report.py" = ["F401", "I001", "E501"]
+"src/pawbench/scoring.py" = ["E741", "I001"]
+
+[tool.mypy]
+python_version = "3.10"
+strict = false
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = [
+    "pawbench.report",
+    "pawbench.engine",
+    "pawbench.capture",
+]
+ignore_errors = true
+
+[[tool.mypy.overrides]]
+module = ["requests", "requests.*", "aiohttp", "aiohttp.*"]
+ignore_missing_imports = true
+follow_untyped_imports = true
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+markers = [
+    "integration: tests requiring a live inference endpoint",
+]
