@@ -1,5 +1,12 @@
 # PawBench 🐾
 
+[![CI](https://github.com/zenprocess/pawbench/actions/workflows/ci.yml/badge.svg)](https://github.com/zenprocess/pawbench/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/zenprocess/pawbench/graph/badge.svg)](https://codecov.io/gh/zenprocess/pawbench)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=zenprocess_pawbench&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=zenprocess_pawbench)
+[![PyPI version](https://badge.fury.io/py/pawbench.svg)](https://pypi.org/project/pawbench/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+
 **Because your model deserves a benchmark with more bark than bite.**
 
 4-dimensional LLM inference benchmark for OpenAI-compatible endpoints. Multi-turn, multi-agent, parallel dispatch with tool calling.
