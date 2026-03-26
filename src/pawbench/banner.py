@@ -1,4 +1,5 @@
 """ASCII art banner for PawBench CLI."""
+
 from __future__ import annotations
 
 from pawbench import __version__

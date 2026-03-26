@@ -1,4 +1,5 @@
 """Benchmark execution engine — streaming API calls, multi-turn, parallel dispatch."""
+
 from __future__ import annotations
 
 import asyncio
@@ -154,14 +155,16 @@ async def run_agent(
                         tool_call_id = f"call_{turn_num}"
 
                 if ar.turns and ar.turns[-1].tool_calls:
-                    messages.append({
-                        "role": "assistant",
-                        "content": ar.turns[-1].output_text or None,
-                        "tool_calls": [
-                            {"id": tc.get("id", tool_call_id), "type": "function", "function": tc["function"]}
-                            for tc in ar.turns[-1].tool_calls
-                        ],
-                    })
+                    messages.append(
+                        {
+                            "role": "assistant",
+                            "content": ar.turns[-1].output_text or None,
+                            "tool_calls": [
+                                {"id": tc.get("id", tool_call_id), "type": "function", "function": tc["function"]}
+                                for tc in ar.turns[-1].tool_calls
+                            ],
+                        }
+                    )
                     messages.append({"role": "tool", "tool_call_id": tool_call_id, "content": tr["content"]})
 
         if turn_spec.get("content"):
@@ -241,14 +244,18 @@ async def run_saturation_test(
     results: list[SaturationPoint] = []
 
     async def _one_request(session: aiohttp.ClientSession) -> dict[str, Any]:
-        payload = {"model": model, "messages": [{"role": "user", "content": prompt}],
-                   "temperature": 0, "max_tokens": max_tokens}
+        payload = {
+            "model": model,
+            "messages": [{"role": "user", "content": prompt}],
+            "temperature": 0,
+            "max_tokens": max_tokens,
+        }
         start = time.perf_counter()
-        async with session.post(f"{endpoint}/v1/chat/completions", json=payload,
-                                timeout=aiohttp.ClientTimeout(total=120)) as r:
+        async with session.post(
+            f"{endpoint}/v1/chat/completions", json=payload, timeout=aiohttp.ClientTimeout(total=120)
+        ) as r:
             data = await r.json()
-            return {"comp": data.get("usage", {}).get("completion_tokens", 0),
-                    "e2e": time.perf_counter() - start}
+            return {"comp": data.get("usage", {}).get("completion_tokens", 0), "e2e": time.perf_counter() - start}
 
     for n in concurrency_levels:
         async with aiohttp.ClientSession() as session:

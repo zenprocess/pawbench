@@ -1,4 +1,5 @@
 """PawBench CLI — run benchmarks against any OpenAI-compatible endpoint."""
+
 from __future__ import annotations
 
 import argparse
@@ -45,8 +46,11 @@ def _load_scenarios(scenario_paths: list[Path] | None = None) -> list[dict]:
 
 
 def _run_scenario(
-    endpoint: str, model: str, scenario: dict,
-    concurrency_levels: list[int], runs: int,
+    endpoint: str,
+    model: str,
+    scenario: dict,
+    concurrency_levels: list[int],
+    runs: int,
 ) -> tuple[ScenarioReport, list]:
     sr = ScenarioReport(scenario_id=scenario["id"], scenario_name=scenario["name"])
     all_cr = []
@@ -92,26 +96,29 @@ def main():
         prog="pawbench",
         description="PawBench — 4-dimensional LLM inference benchmark",
     )
-    parser.add_argument("--endpoint", default="http://localhost:8000",
-                        help="OpenAI-compatible API endpoint (default: http://localhost:8000)")
-    parser.add_argument("--concurrency", default="1,2,4,8",
-                        help="Comma-separated concurrency levels for parallel sweep")
-    parser.add_argument("--runs", type=int, default=1,
-                        help="Runs per scenario (results averaged)")
-    parser.add_argument("--tag", default="default",
-                        help="Tag for this benchmark run (used in output filename)")
-    parser.add_argument("--output", default=None,
-                        help="Directory to save JSON results")
-    parser.add_argument("--scenario", action="append", default=None,
-                        help="Path to custom scenario JSON (can repeat). Omit for built-in PawStyle scenarios.")
-    parser.add_argument("--saturation-only", action="store_true",
-                        help="Only run raw throughput saturation test (skip scenarios)")
-    parser.add_argument("--no-saturation", action="store_true",
-                        help="Skip raw saturation test")
-    parser.add_argument("--json", action="store_true",
-                        help="Output raw JSON instead of human-readable report")
-    parser.add_argument("--version", action="version",
-                        version=f"%(prog)s {__version__}")
+    parser.add_argument(
+        "--endpoint",
+        default="http://localhost:8000",
+        help="OpenAI-compatible API endpoint (default: http://localhost:8000)",
+    )
+    parser.add_argument(
+        "--concurrency", default="1,2,4,8", help="Comma-separated concurrency levels for parallel sweep"
+    )
+    parser.add_argument("--runs", type=int, default=1, help="Runs per scenario (results averaged)")
+    parser.add_argument("--tag", default="default", help="Tag for this benchmark run (used in output filename)")
+    parser.add_argument("--output", default=None, help="Directory to save JSON results")
+    parser.add_argument(
+        "--scenario",
+        action="append",
+        default=None,
+        help="Path to custom scenario JSON (can repeat). Omit for built-in PawStyle scenarios.",
+    )
+    parser.add_argument(
+        "--saturation-only", action="store_true", help="Only run raw throughput saturation test (skip scenarios)"
+    )
+    parser.add_argument("--no-saturation", action="store_true", help="Skip raw saturation test")
+    parser.add_argument("--json", action="store_true", help="Output raw JSON instead of human-readable report")
+    parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     args = parser.parse_args()
 
     conc_levels = [int(c) for c in args.concurrency.split(",")]
@@ -165,11 +172,13 @@ def main():
     conc_curve = []
     for conc in sorted(all_concurrency_data.keys()):
         crs = all_concurrency_data[conc]
-        conc_curve.append({
-            "concurrency": conc,
-            "tok_s": sum(c.aggregate_tok_s for c in crs) / len(crs),
-            "per_agent": sum(c.per_agent_tok_s for c in crs) / len(crs),
-        })
+        conc_curve.append(
+            {
+                "concurrency": conc,
+                "tok_s": sum(c.aggregate_tok_s for c in crs) / len(crs),
+                "per_agent": sum(c.per_agent_tok_s for c in crs) / len(crs),
+            }
+        )
 
     peak_sat = max(saturation_curve, key=lambda p: p.tok_s) if saturation_curve else None
     valid_scenarios = [s for s in scenario_reports]

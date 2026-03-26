@@ -1,4 +1,5 @@
 """Data types for benchmark results."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -8,6 +9,7 @@ from typing import Any
 @dataclass
 class TurnResult:
     """Result from a single conversation turn."""
+
     turn: int
     role: str = "assistant"
     ttft_ms: float = 0.0
@@ -28,6 +30,7 @@ class TurnResult:
 @dataclass
 class AgentResult:
     """Result from a full multi-turn agent conversation."""
+
     agent_id: str
     agent_name: str
     turns: list[TurnResult] = field(default_factory=list)
@@ -44,6 +47,7 @@ class AgentResult:
 @dataclass
 class ConcurrencyResult:
     """Result from one concurrency level."""
+
     concurrency: int
     wall_time_ms: float = 0.0
     total_tokens: int = 0
@@ -55,6 +59,7 @@ class ConcurrencyResult:
 @dataclass
 class SaturationPoint:
     """One point on the throughput saturation curve."""
+
     concurrency: int
     tok_s: float
     per_agent: float
@@ -65,6 +70,7 @@ class SaturationPoint:
 @dataclass
 class ScenarioReport:
     """Results from one scenario across all concurrency levels."""
+
     scenario_id: str
     scenario_name: str
     single_tok_s: float = 0.0
@@ -84,6 +90,7 @@ class ScenarioReport:
 @dataclass
 class ModelCard:
     """Captured model + serving config for reproducibility."""
+
     model_name: str = "unknown"
     serving: dict[str, Any] = field(default_factory=dict)
     model_config: dict[str, Any] = field(default_factory=dict)
@@ -95,6 +102,7 @@ class ModelCard:
 @dataclass
 class BenchmarkReport:
     """Full 4-dimensional benchmark report."""
+
     tag: str
     timestamp: str
     endpoint: str

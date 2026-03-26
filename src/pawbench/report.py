@@ -1,4 +1,5 @@
 """Human-readable report output."""
+
 from __future__ import annotations
 
 from dataclasses import asdict
@@ -33,7 +34,9 @@ def print_report(report: BenchmarkReport) -> None:
     print(f"{D}  Tag: {report.tag}  |  {report.timestamp[:19]}{R}")
     print(f"{D}  Model: {mc.model_name}  |  GPU: {gpu_name}{R}")
     tuning = mc.tuning
-    print(f"{D}  KV: {tuning.get('kv_cache_dtype', '?')}  |  Ctx: {tuning.get('max_model_len', '?')}  |  Seqs: {tuning.get('max_num_seqs', '?')}  |  Spec: {tuning.get('speculative_config', 'none')}{R}")
+    print(
+        f"{D}  KV: {tuning.get('kv_cache_dtype', '?')}  |  Ctx: {tuning.get('max_model_len', '?')}  |  Seqs: {tuning.get('max_num_seqs', '?')}  |  Spec: {tuning.get('speculative_config', 'none')}{R}"
+    )
     print(f"{B}{C}{'=' * 80}{R}\n")
 
     # Scenarios
@@ -59,7 +62,9 @@ def print_report(report: BenchmarkReport) -> None:
     print(f"  {'─' * 60}")
     print(f"  Single agent:    {B}{d1.get('avg_single_tok_s', 0):.1f} tok/s{R}")
     print(f"  Avg TTFT:        {d1.get('avg_ttft_ms', 0):.0f} ms")
-    print(f"  Raw peak:        {B}{G}{d1.get('raw_peak_tok_s', 0):.1f} tok/s @ {d1.get('raw_peak_concurrency', 0)} parallel{R}")
+    print(
+        f"  Raw peak:        {B}{G}{d1.get('raw_peak_tok_s', 0):.1f} tok/s @ {d1.get('raw_peak_concurrency', 0)} parallel{R}"
+    )
 
     if report.saturation_curve:
         print(f"\n  {B}Saturation Curve:{R}")
@@ -67,7 +72,9 @@ def print_report(report: BenchmarkReport) -> None:
         for pt in report.saturation_curve:
             pt = pt if isinstance(pt, dict) else asdict(pt)
             peak = f" {G}<< peak{R}" if pt["tok_s"] == d1.get("raw_peak_tok_s", 0) else ""
-            print(f"  {pt['concurrency']:>5d}  {pt['tok_s']:>15.1f}  {pt['per_agent']:>9.1f}  {pt['wall_s']:>6.1f}s{peak}")
+            print(
+                f"  {pt['concurrency']:>5d}  {pt['tok_s']:>15.1f}  {pt['per_agent']:>9.1f}  {pt['wall_s']:>6.1f}s{peak}"
+            )
 
     # Dim 2
     d2 = report.dim2_quality

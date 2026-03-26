@@ -1,4 +1,5 @@
 """Capture model card and server metrics from an OpenAI-compatible endpoint."""
+
 from __future__ import annotations
 
 import json
@@ -46,6 +47,7 @@ def capture_model_card(endpoint: str) -> ModelCard:
     if model_path:
         try:
             import pathlib
+
             config_path = pathlib.Path(model_path) / "config.json"
             if config_path.exists():
                 with open(config_path) as f:
@@ -78,8 +80,10 @@ def capture_model_card(endpoint: str) -> ModelCard:
     # GPU info
     try:
         out = subprocess.check_output(
-            ["nvidia-smi", "--query-gpu=name,driver_version,temperature.gpu,power.draw",
-             "--format=csv,noheader"], text=True, timeout=5)
+            ["nvidia-smi", "--query-gpu=name,driver_version,temperature.gpu,power.draw", "--format=csv,noheader"],
+            text=True,
+            timeout=5,
+        )
         parts = [p.strip() for p in out.strip().split(",")]
         card.gpu = {"name": parts[0], "driver": parts[1], "temp_c": parts[2], "power_w": parts[3]}
     except Exception:

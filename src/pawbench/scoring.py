@@ -1,4 +1,5 @@
 """Quality scoring and efficiency metrics — format-agnostic."""
+
 from __future__ import annotations
 
 import json
@@ -12,8 +13,10 @@ from pawbench.types import TurnResult
 # Built-in format validators (users can provide their own)
 # ---------------------------------------------------------------------------
 
+
 def key_value_format_validator(required_keys: list[str]) -> Callable[[str], dict[str, Any]]:
     """Validator for KEY:value line-based formats (e.g., STATUS:ok, FILES_CREATED:...)."""
+
     def validate(text: str) -> dict[str, Any]:
         result: dict[str, Any] = {"compliant": False, "fields": {}, "missing_keys": []}
         stripped = text.strip()
@@ -38,11 +41,13 @@ def key_value_format_validator(required_keys: list[str]) -> Callable[[str], dict
             result["first_key_correct"] = False
 
         return result
+
     return validate
 
 
 def json_format_validator(required_fields: list[str] | None = None) -> Callable[[str], dict[str, Any]]:
     """Validator for JSON output format."""
+
     def validate(text: str) -> dict[str, Any]:
         result: dict[str, Any] = {"compliant": False, "fields": {}, "parse_error": ""}
         stripped = text.strip()
@@ -62,12 +67,14 @@ def json_format_validator(required_fields: list[str] | None = None) -> Callable[
         except json.JSONDecodeError as e:
             result["parse_error"] = str(e)
         return result
+
     return validate
 
 
 # ---------------------------------------------------------------------------
 # Turn-level quality scoring
 # ---------------------------------------------------------------------------
+
 
 def score_turn(turn_spec: dict[str, Any], result: TurnResult) -> float:
     """Score quality 0-1 based on expected outcomes defined in the scenario."""
@@ -100,6 +107,7 @@ def score_turn(turn_spec: dict[str, Any], result: TurnResult) -> float:
 # ---------------------------------------------------------------------------
 # Efficiency metrics
 # ---------------------------------------------------------------------------
+
 
 def useful_ratio(text: str, tool_calls: list[dict[str, Any]] | None = None) -> float:
     """Ratio of useful content. Tool call arguments (code) count as 100% useful."""

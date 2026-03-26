@@ -1,4 +1,5 @@
 """Tests for pawbench.scoring module."""
+
 from __future__ import annotations
 
 from pawbench.scoring import json_format_validator, key_value_format_validator, score_turn, useful_ratio

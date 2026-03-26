@@ -1,4 +1,5 @@
 """PawBench — 4-dimensional LLM inference benchmark."""
+
 from importlib.metadata import PackageNotFoundError, version
 
 try:

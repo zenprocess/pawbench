@@ -1,4 +1,5 @@
 """Compare two or more benchmark result files side by side."""
+
 from __future__ import annotations
 
 import json
