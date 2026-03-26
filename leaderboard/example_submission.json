@@ -1,0 +1,28 @@
+{
+  "model": "Qwen3-Coder-80B-FP8",
+  "gpu": "NVIDIA GB10 (128GB UMA)",
+  "config": {
+    "serving_engine": "vLLM",
+    "quantization": "FP8",
+    "tensor_parallel": 1,
+    "max_model_len": 32768,
+    "gpu_memory_utilization": 0.78,
+    "enforce_eager": true
+  },
+  "single_tok_s": 18.4,
+  "peak_tok_s": 52.7,
+  "peak_concurrency": 4,
+  "avg_quality": 0.82,
+  "avg_ttft_ms": 342.1,
+  "format_compliance_rate": 0.91,
+  "tool_accuracy": 0.76,
+  "useful_ratio": 0.68,
+  "steering_rate": 0.85,
+  "scenarios_run": 4,
+  "runs_per_scenario": 2,
+  "concurrency_levels": [1, 2, 4, 8],
+  "timestamp": "2026-03-25T14:30:00Z",
+  "pawbench_version": "0.1.0",
+  "tag": "gb10-qwen3-fp8-baseline",
+  "notes": "Eagle3-spec3 speculative decoding enabled. GB10 UMA with enforce_eager due to SM 12.1."
+}

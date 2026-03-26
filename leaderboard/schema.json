@@ -1,0 +1,151 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "PawBench Leaderboard Submission",
+  "description": "Schema for PawBench benchmark result submissions",
+  "type": "object",
+  "required": [
+    "model",
+    "gpu",
+    "config",
+    "single_tok_s",
+    "peak_tok_s",
+    "avg_quality",
+    "avg_ttft_ms",
+    "timestamp",
+    "pawbench_version"
+  ],
+  "properties": {
+    "model": {
+      "type": "string",
+      "description": "Model name as reported by the serving engine",
+      "minLength": 1
+    },
+    "gpu": {
+      "type": "string",
+      "description": "GPU model used for the benchmark run",
+      "minLength": 1
+    },
+    "config": {
+      "type": "object",
+      "description": "Serving configuration details",
+      "required": ["serving_engine"],
+      "properties": {
+        "serving_engine": {
+          "type": "string",
+          "description": "Inference server (e.g. vLLM, TGI, SGLang)"
+        },
+        "quantization": {
+          "type": "string",
+          "description": "Quantization method (e.g. FP8, AWQ, GPTQ, NVFP4, none)"
+        },
+        "tensor_parallel": {
+          "type": "integer",
+          "description": "Tensor parallelism degree",
+          "minimum": 1
+        },
+        "max_model_len": {
+          "type": "integer",
+          "description": "Maximum context length configured"
+        },
+        "gpu_memory_utilization": {
+          "type": "number",
+          "description": "GPU memory utilization fraction",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "enforce_eager": {
+          "type": "boolean",
+          "description": "Whether CUDA graph capture was disabled"
+        }
+      },
+      "additionalProperties": true
+    },
+    "single_tok_s": {
+      "type": "number",
+      "description": "Average single-agent decode throughput (tokens/sec)",
+      "minimum": 0
+    },
+    "peak_tok_s": {
+      "type": "number",
+      "description": "Peak aggregate throughput across concurrency levels (tokens/sec)",
+      "minimum": 0
+    },
+    "peak_concurrency": {
+      "type": "integer",
+      "description": "Concurrency level at which peak throughput was achieved",
+      "minimum": 1
+    },
+    "avg_quality": {
+      "type": "number",
+      "description": "Average quality score across all scenarios (0-1)",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "avg_ttft_ms": {
+      "type": "number",
+      "description": "Average time-to-first-token in milliseconds",
+      "minimum": 0
+    },
+    "format_compliance_rate": {
+      "type": "number",
+      "description": "Rate of format-compliant responses (0-1)",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "tool_accuracy": {
+      "type": "number",
+      "description": "Tool call accuracy rate (0-1)",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "useful_ratio": {
+      "type": "number",
+      "description": "Ratio of useful output tokens (0-1)",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "steering_rate": {
+      "type": "number",
+      "description": "Rate of successful steering/nudge compliance (0-1)",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "scenarios_run": {
+      "type": "integer",
+      "description": "Number of scenarios executed",
+      "minimum": 1
+    },
+    "runs_per_scenario": {
+      "type": "integer",
+      "description": "Number of runs per scenario (results averaged)",
+      "minimum": 1
+    },
+    "concurrency_levels": {
+      "type": "array",
+      "description": "Concurrency levels used in the sweep",
+      "items": {
+        "type": "integer",
+        "minimum": 1
+      }
+    },
+    "timestamp": {
+      "type": "string",
+      "description": "ISO 8601 timestamp of the benchmark run",
+      "format": "date-time"
+    },
+    "pawbench_version": {
+      "type": "string",
+      "description": "PawBench version used for the run",
+      "pattern": "^\\d+\\.\\d+\\.\\d+"
+    },
+    "tag": {
+      "type": "string",
+      "description": "User-supplied tag for the run"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Optional free-text notes about the run"
+    }
+  },
+  "additionalProperties": false
+}
