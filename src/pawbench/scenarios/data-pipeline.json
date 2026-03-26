@@ -1,0 +1,129 @@
+{
+  "id": "data-pipeline",
+  "name": "CSV-to-JSON Data Pipeline — Transform, Validate, Extend",
+  "description": "Build a CSV-to-JSON data pipeline with validation. Agent 1 builds the transformer, Agent 2 builds the validator. Nudge event adds TSV support. Tests multi-agent coordination, data handling quality, and adaptability.",
+
+  "agents": [
+    {
+      "id": "transformer",
+      "name": "Transformer Agent",
+      "turns": [
+        {
+          "turn": 1,
+          "role": "user",
+          "content": "Build a Python CSV-to-JSON data transformer module.\n\nCreate pipeline/transformer.py with:\n1. A class `CSVTransformer` that reads a CSV file and converts it to JSON.\n2. Constructor takes: input_path (str), output_path (str, optional — defaults to input_path with .json extension), delimiter (str, default ',')\n3. Method `transform() -> list[dict]`:\n   - Read the CSV file using stdlib csv module\n   - First row is headers\n   - Auto-detect types: integers, floats, booleans ('true'/'false'), and strings\n   - Handle quoted fields and escaped commas\n   - Return list of dicts (one per row)\n4. Method `save(data: list[dict]) -> str`:\n   - Write the JSON to output_path with indent=2\n   - Return the output path\n5. Method `transform_and_save() -> tuple[list[dict], str]`:\n   - Convenience method that calls transform() then save()\n   - Return (data, output_path)\n6. Handle errors: FileNotFoundError, empty CSV (raise ValueError), malformed rows (skip with warning to stderr)\n\nAlso create pipeline/__init__.py. Use write_file for each file.",
+          "tools": ["write_file", "run_command"],
+          "expect": {
+            "tool_calls_min": 1,
+            "tool_name_any": ["write_file"],
+            "output_mentions": ["CSV", "transform", "json"]
+          }
+        },
+        {
+          "turn": 2,
+          "inject_tool_results": [
+            {"tool_call_id": "auto", "name": "write_file", "content": "{\"status\": \"ok\", \"path\": \"pipeline/transformer.py\", \"bytes\": 2800}"},
+            {"tool_call_id": "auto", "name": "write_file", "content": "{\"status\": \"ok\", \"path\": \"pipeline/__init__.py\", \"bytes\": 100}"}
+          ],
+          "role": "tool_result",
+          "content": "Transformer created. Now add these features:\n1. Column mapping: method `set_column_map(mapping: dict)` — rename columns during transform. E.g., {'First Name': 'first_name', 'Last Name': 'last_name'}\n2. Column filtering: method `set_columns(columns: list[str])` — only include specified columns in output\n3. Row filtering: method `set_filter(column: str, operator: str, value: any)` — filter rows. Operators: 'eq', 'neq', 'gt', 'lt', 'gte', 'lte', 'contains', 'startswith'\n4. Method chaining: all set_* methods return self for fluent API\n5. Statistics: method `stats() -> dict` returning {\"total_rows\": N, \"filtered_rows\": N, \"columns\": [...], \"type_distribution\": {\"col\": {\"int\": N, \"str\": N}}}\n\nUse write_file to update transformer.py.",
+          "tools": ["write_file", "run_command"],
+          "expect": {
+            "tool_calls_min": 1,
+            "output_mentions": ["column", "filter", "mapping"]
+          }
+        },
+        {
+          "turn": 3,
+          "steering_event": true,
+          "inject_tool_results": [
+            {"tool_call_id": "auto", "name": "write_file", "content": "{\"status\": \"ok\", \"path\": \"pipeline/transformer.py\", \"bytes\": 4500}"}
+          ],
+          "role": "tool_result",
+          "content": "NUDGE: Client just sent data in TSV format (tab-separated). Add TSV support:\n\n1. Auto-detect delimiter: if file extension is .tsv, use tab delimiter. If .csv, use comma. Otherwise, sniff the first line.\n2. Add a class `TSVTransformer` that extends CSVTransformer with delimiter='\\t'\n3. Add a factory function `create_transformer(input_path: str, output_path: str = None) -> CSVTransformer` that auto-selects the right transformer based on file extension\n4. Support mixed-format batch processing: method `batch_transform(input_paths: list[str]) -> list[tuple[list[dict], str]]` that processes multiple files (CSV and TSV mixed) and returns results for each\n\nUse write_file to update transformer.py.",
+          "tools": ["write_file", "run_command"],
+          "expect": {
+            "tool_calls_min": 1,
+            "output_mentions": ["TSV", "tab", "delimiter"],
+            "steering_followed": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "validator",
+      "name": "Validator Agent",
+      "turns": [
+        {
+          "turn": 1,
+          "role": "user",
+          "content": "Build a data validation module for a CSV-to-JSON pipeline.\n\nCreate pipeline/validator.py with:\n1. A class `SchemaValidator` that validates transformed data (list of dicts) against a schema.\n2. Schema definition format:\n   ```python\n   schema = {\n       'name': {'type': 'str', 'required': True, 'min_length': 1, 'max_length': 100},\n       'age': {'type': 'int', 'required': True, 'min': 0, 'max': 150},\n       'email': {'type': 'str', 'required': True, 'pattern': r'^[\\w.-]+@[\\w.-]+\\.\\w+$'},\n       'score': {'type': 'float', 'required': False, 'min': 0.0, 'max': 100.0},\n       'active': {'type': 'bool', 'required': False, 'default': True}\n   }\n   ```\n3. Method `validate(data: list[dict]) -> ValidationResult` where ValidationResult has:\n   - valid_rows: list[dict] — rows that passed validation\n   - invalid_rows: list[tuple[int, dict, list[str]]] — (row_index, row_data, list of error messages)\n   - is_valid: bool — True if all rows valid\n   - error_count: int\n   - summary: dict — {\"total\": N, \"valid\": N, \"invalid\": N, \"errors_by_field\": {\"name\": N}}\n4. Support type coercion: if a field is type 'int' but value is '42' (string), coerce it\n5. Support custom validators: method `add_validator(field: str, fn: Callable, error_msg: str)`\n\nUse write_file.",
+          "tools": ["write_file", "run_command"],
+          "expect": {
+            "tool_calls_min": 1,
+            "tool_name_any": ["write_file"],
+            "output_mentions": ["schema", "validate", "ValidationResult"]
+          }
+        },
+        {
+          "turn": 2,
+          "inject_tool_results": [
+            {"tool_call_id": "auto", "name": "write_file", "content": "{\"status\": \"ok\", \"path\": \"pipeline/validator.py\", \"bytes\": 3400}"}
+          ],
+          "role": "tool_result",
+          "content": "Validator created. Now add:\n1. Uniqueness constraint: schema field option `unique: True` — flag duplicates in that column\n2. Cross-field validation: method `add_cross_validator(fn: Callable[[dict], bool], error_msg: str)` — validate relationships between fields (e.g., 'end_date > start_date')\n3. Reporting: method `generate_report() -> str` that returns a human-readable validation report with:\n   - Summary statistics\n   - Top 10 most common errors\n   - Error distribution by field\n   - Sample invalid rows (first 5)\n4. Fix/transform mode: method `set_fix_mode(fixes: dict)` where fixes maps field names to fix functions. E.g., {'email': str.lower, 'name': str.strip}. Applied before validation.\n\nUse write_file to update validator.py.",
+          "tools": ["write_file", "run_command"],
+          "expect": {
+            "tool_calls_min": 1,
+            "output_mentions": ["unique", "cross-field", "report"]
+          }
+        },
+        {
+          "turn": 3,
+          "inject_tool_results": [
+            {"tool_call_id": "auto", "name": "write_file", "content": "{\"status\": \"ok\", \"path\": \"pipeline/validator.py\", \"bytes\": 5200}"}
+          ],
+          "role": "tool_result",
+          "content": "Updated. Final step: create the pipeline integration module.\n\nCreate pipeline/runner.py that ties the transformer and validator together:\n1. Class `PipelineRunner`:\n   - Constructor: `PipelineRunner(input_path: str, schema: dict, output_path: str = None)`\n   - Method `run() -> PipelineResult` with:\n     - transform_time_ms: float\n     - validate_time_ms: float\n     - total_time_ms: float\n     - input_rows: int\n     - valid_rows: int\n     - invalid_rows: int\n     - output_path: str\n     - validation_report: str\n   - Auto-detects CSV vs TSV using the factory function from transformer.py\n   - Applies fixes, validates, saves only valid rows\n   - Saves invalid rows to a separate '<output>_errors.json' file\n2. CLI entry point: `python -m pipeline.runner <input> <schema.json> [--output <path>] [--fix] [--report]`\n\nUse write_file.",
+          "tools": ["write_file", "run_command"],
+          "expect": {
+            "tool_calls_min": 1,
+            "output_mentions": ["pipeline", "runner", "CLI"]
+          }
+        }
+      ]
+    }
+  ],
+
+  "tools_schema": [
+    {
+      "type": "function",
+      "function": {
+        "name": "write_file",
+        "description": "Write content to a file, creating directories as needed",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "path": {"type": "string", "description": "File path relative to workspace"},
+            "content": {"type": "string", "description": "File content to write"}
+          },
+          "required": ["path", "content"]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "run_command",
+        "description": "Run a shell command in the workspace",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "command": {"type": "string", "description": "Shell command to execute"}
+          },
+          "required": ["command"]
+        }
+      }
+    }
+  ]
+}

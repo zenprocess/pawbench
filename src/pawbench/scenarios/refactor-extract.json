@@ -1,0 +1,91 @@
+{
+  "id": "refactor-extract",
+  "name": "Monolith to Modules — Extract and Type-Hint Refactor",
+  "description": "Given a monolithic 200-line script, extract into clean modules across 3 turns. Turn 1: read the monolith. Turn 2: extract into modules. Turn 3: steering event to add type hints. Tests refactoring ability, code organization, and adaptability to late requirements.",
+
+  "agents": [
+    {
+      "id": "refactorer",
+      "name": "Refactoring Agent",
+      "turns": [
+        {
+          "turn": 1,
+          "role": "user",
+          "content": "We have a monolithic Python script at app/monolith.py that handles a small inventory management system. Here's the code:\n\n```python\nimport json\nimport os\nimport sys\nfrom datetime import datetime\n\nINVENTORY_FILE = 'inventory.json'\n\ndef load_inventory():\n    if os.path.exists(INVENTORY_FILE):\n        with open(INVENTORY_FILE, 'r') as f:\n            return json.load(f)\n    return {'products': [], 'categories': [], 'transactions': []}\n\ndef save_inventory(data):\n    with open(INVENTORY_FILE, 'w') as f:\n        json.dump(data, f, indent=2, default=str)\n\ndef add_product(data, name, price, category, quantity):\n    product_id = max([p['id'] for p in data['products']], default=0) + 1\n    if category not in data['categories']:\n        data['categories'].append(category)\n    product = {'id': product_id, 'name': name, 'price': float(price), 'category': category, 'quantity': int(quantity), 'created_at': datetime.now().isoformat()}\n    data['products'].append(product)\n    data['transactions'].append({'type': 'add', 'product_id': product_id, 'quantity': int(quantity), 'timestamp': datetime.now().isoformat()})\n    save_inventory(data)\n    return product\n\ndef remove_product(data, product_id):\n    product = None\n    for p in data['products']:\n        if p['id'] == product_id:\n            product = p\n            break\n    if product is None:\n        print(f'Product {product_id} not found')\n        return None\n    data['products'].remove(product)\n    data['transactions'].append({'type': 'remove', 'product_id': product_id, 'timestamp': datetime.now().isoformat()})\n    save_inventory(data)\n    return product\n\ndef update_quantity(data, product_id, delta):\n    for p in data['products']:\n        if p['id'] == product_id:\n            p['quantity'] += delta\n            if p['quantity'] < 0:\n                p['quantity'] = 0\n            data['transactions'].append({'type': 'update', 'product_id': product_id, 'delta': delta, 'timestamp': datetime.now().isoformat()})\n            save_inventory(data)\n            return p\n    print(f'Product {product_id} not found')\n    return None\n\ndef search_products(data, query):\n    results = []\n    for p in data['products']:\n        if query.lower() in p['name'].lower() or query.lower() in p['category'].lower():\n            results.append(p)\n    return results\n\ndef get_by_category(data, category):\n    return [p for p in data['products'] if p['category'] == category]\n\ndef get_low_stock(data, threshold=5):\n    return [p for p in data['products'] if p['quantity'] <= threshold]\n\ndef get_total_value(data):\n    return sum(p['price'] * p['quantity'] for p in data['products'])\n\ndef get_transaction_history(data, product_id=None):\n    if product_id:\n        return [t for t in data['transactions'] if t.get('product_id') == product_id]\n    return data['transactions']\n\ndef format_product(product):\n    return f\"[{product['id']}] {product['name']} - ${product['price']:.2f} x{product['quantity']} ({product['category']})\"\n\ndef format_report(data):\n    lines = ['=== Inventory Report ===']\n    lines.append(f'Total products: {len(data[\"products\"])}')\n    lines.append(f'Total value: ${get_total_value(data):.2f}')\n    lines.append(f'Categories: {\", \".join(data[\"categories\"])}')\n    lines.append('')\n    for cat in data['categories']:\n        products = get_by_category(data, cat)\n        lines.append(f'--- {cat} ({len(products)} items) ---')\n        for p in products:\n            lines.append(f'  {format_product(p)}')\n    low = get_low_stock(data)\n    if low:\n        lines.append('')\n        lines.append('!!! LOW STOCK ALERT !!!')\n        for p in low:\n            lines.append(f'  {format_product(p)}')\n    return '\\n'.join(lines)\n\ndef main():\n    data = load_inventory()\n    if len(sys.argv) < 2:\n        print('Usage: python monolith.py <command> [args]')\n        print('Commands: add, remove, update, search, report, low-stock, history')\n        sys.exit(1)\n    cmd = sys.argv[1]\n    if cmd == 'add':\n        if len(sys.argv) != 6:\n            print('Usage: add <name> <price> <category> <quantity>')\n            sys.exit(1)\n        p = add_product(data, sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5])\n        print(f'Added: {format_product(p)}')\n    elif cmd == 'remove':\n        if len(sys.argv) != 3:\n            print('Usage: remove <product_id>')\n            sys.exit(1)\n        p = remove_product(data, int(sys.argv[2]))\n        if p:\n            print(f'Removed: {format_product(p)}')\n    elif cmd == 'update':\n        if len(sys.argv) != 4:\n            print('Usage: update <product_id> <delta>')\n            sys.exit(1)\n        p = update_quantity(data, int(sys.argv[2]), int(sys.argv[3]))\n        if p:\n            print(f'Updated: {format_product(p)}')\n    elif cmd == 'search':\n        if len(sys.argv) != 3:\n            print('Usage: search <query>')\n            sys.exit(1)\n        results = search_products(data, sys.argv[2])\n        for p in results:\n            print(format_product(p))\n    elif cmd == 'report':\n        print(format_report(data))\n    elif cmd == 'low-stock':\n        threshold = int(sys.argv[2]) if len(sys.argv) > 2 else 5\n        low = get_low_stock(data, threshold)\n        for p in low:\n            print(format_product(p))\n    elif cmd == 'history':\n        pid = int(sys.argv[2]) if len(sys.argv) > 2 else None\n        txns = get_transaction_history(data, pid)\n        for t in txns:\n            print(json.dumps(t))\n    else:\n        print(f'Unknown command: {cmd}')\n        sys.exit(1)\n\nif __name__ == '__main__':\n    main()\n```\n\nThis ~200-line monolith mixes storage, business logic, formatting, and CLI handling. Analyze it and plan a refactoring strategy. Use write_file to save the original monolith (we need it as a reference), then describe your extraction plan.",
+          "tools": ["write_file", "run_command"],
+          "expect": {
+            "tool_calls_min": 1,
+            "tool_name_any": ["write_file"],
+            "output_mentions": ["module", "extract", "separate"]
+          }
+        },
+        {
+          "turn": 2,
+          "inject_tool_results": [
+            {"tool_call_id": "auto", "name": "write_file", "content": "{\"status\": \"ok\", \"path\": \"app/monolith.py\", \"bytes\": 4800}"}
+          ],
+          "role": "tool_result",
+          "content": "Monolith saved. Now extract it into clean modules:\n\n1. app/storage.py — load_inventory() and save_inventory() functions. Make INVENTORY_FILE configurable.\n2. app/models.py — Product and Transaction data handling. Keep the data dict structure but add helper functions for creating products/transactions.\n3. app/inventory.py — Business logic: add_product, remove_product, update_quantity, search_products, get_by_category, get_low_stock, get_total_value, get_transaction_history. Import from storage and models.\n4. app/formatting.py — format_product() and format_report(). Import from inventory for get_by_category etc.\n5. app/cli.py — main() function and argument parsing. Import from inventory and formatting.\n6. app/__init__.py — package init.\n\nEach module should be self-contained with clear imports. The CLI should work identically to the monolith. Use write_file for each file.",
+          "tools": ["write_file", "run_command"],
+          "expect": {
+            "tool_calls_min": 4,
+            "tool_name_any": ["write_file"],
+            "output_mentions": ["storage", "models", "inventory", "cli"]
+          }
+        },
+        {
+          "turn": 3,
+          "steering_event": true,
+          "inject_tool_results": [
+            {"tool_call_id": "auto", "name": "write_file", "content": "{\"status\": \"ok\", \"path\": \"app/storage.py\", \"bytes\": 600}"},
+            {"tool_call_id": "auto", "name": "write_file", "content": "{\"status\": \"ok\", \"path\": \"app/models.py\", \"bytes\": 900}"},
+            {"tool_call_id": "auto", "name": "write_file", "content": "{\"status\": \"ok\", \"path\": \"app/inventory.py\", \"bytes\": 2200}"},
+            {"tool_call_id": "auto", "name": "write_file", "content": "{\"status\": \"ok\", \"path\": \"app/formatting.py\", \"bytes\": 800}"},
+            {"tool_call_id": "auto", "name": "write_file", "content": "{\"status\": \"ok\", \"path\": \"app/cli.py\", \"bytes\": 1400}"},
+            {"tool_call_id": "auto", "name": "write_file", "content": "{\"status\": \"ok\", \"path\": \"app/__init__.py\", \"bytes\": 100}"}
+          ],
+          "role": "tool_result",
+          "content": "STEERING EVENT: Code review requires full type hints on all extracted modules before merge. Add comprehensive type annotations to every module:\n\n1. All function signatures: parameter types and return types\n2. Use typing module where needed (Optional, Any, etc.)\n3. Type the data structures: Product as TypedDict, Transaction as TypedDict\n4. storage.py: type the inventory data structure (InventoryData TypedDict)\n5. Add a py.typed marker file\n\nUpdate all 5 modules (storage.py, models.py, inventory.py, formatting.py, cli.py) with full type hints. Use write_file for each.",
+          "tools": ["write_file", "run_command"],
+          "expect": {
+            "tool_calls_min": 4,
+            "output_mentions": ["TypedDict", "type", "annotation"],
+            "steering_followed": true
+          }
+        }
+      ]
+    }
+  ],
+
+  "tools_schema": [
+    {
+      "type": "function",
+      "function": {
+        "name": "write_file",
+        "description": "Write content to a file, creating directories as needed",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "path": {"type": "string", "description": "File path relative to workspace"},
+            "content": {"type": "string", "description": "File content to write"}
+          },
+          "required": ["path", "content"]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "run_command",
+        "description": "Run a shell command in the workspace",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "command": {"type": "string", "description": "Shell command to execute"}
+          },
+          "required": ["command"]
+        }
+      }
+    }
+  ]
+}

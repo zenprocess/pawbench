@@ -1,0 +1,129 @@
+{
+  "id": "api-auth",
+  "name": "REST API with JWT Auth — Middleware and Protected Endpoints",
+  "description": "Build a REST API with JWT authentication. Agent 1 builds auth middleware, Agent 2 builds protected endpoints. Steering event adds rate limiting to the auth endpoint. Tests multi-agent coordination and adaptability.",
+
+  "agents": [
+    {
+      "id": "auth-middleware",
+      "name": "Auth Middleware Agent",
+      "turns": [
+        {
+          "turn": 1,
+          "role": "user",
+          "content": "Build a JWT authentication module for a Python REST API using stdlib only (http.server + hmac/hashlib for tokens, no PyJWT).\n\nCreate auth/auth.py with:\n1. A function `create_token(user_id: str, secret: str, expires_in: int = 3600) -> str` that creates a JWT-like token. Use base64-encoded JSON header + payload + HMAC-SHA256 signature. Payload should include: sub (user_id), iat (issued at), exp (expiration timestamp).\n2. A function `verify_token(token: str, secret: str) -> dict` that verifies and decodes the token. Raise ValueError for expired tokens, invalid signatures, or malformed tokens.\n3. A decorator `require_auth(secret: str)` that can wrap handler methods. It reads the Authorization header (Bearer <token>), verifies the token, and passes the decoded payload to the handler. Returns 401 JSON response for missing/invalid tokens.\n\nAlso create auth/users.py with a simple in-memory user store:\n- USERS dict: {'admin': {'password': 'admin123', 'role': 'admin'}, 'user1': {'password': 'pass456', 'role': 'user'}}\n- Function `authenticate(username: str, password: str) -> dict | None` that returns user info or None\n\nUse write_file for each file.",
+          "tools": ["write_file", "run_command"],
+          "expect": {
+            "tool_calls_min": 1,
+            "tool_name_any": ["write_file"],
+            "output_mentions": ["JWT", "HMAC", "token"]
+          }
+        },
+        {
+          "turn": 2,
+          "inject_tool_results": [
+            {"tool_call_id": "auto", "name": "write_file", "content": "{\"status\": \"ok\", \"path\": \"auth/auth.py\", \"bytes\": 3200}"},
+            {"tool_call_id": "auto", "name": "write_file", "content": "{\"status\": \"ok\", \"path\": \"auth/users.py\", \"bytes\": 800}"}
+          ],
+          "role": "tool_result",
+          "content": "Auth module written. Now add:\n1. A `POST /api/login` handler function that accepts {\"username\": \"...\", \"password\": \"...\"}, authenticates via users.py, and returns {\"token\": \"<jwt>\", \"expires_in\": 3600, \"user\": {\"username\": \"...\", \"role\": \"...\"}}. Return 401 for invalid credentials.\n2. A `POST /api/refresh` handler that takes an existing valid token and returns a new token with a fresh expiration.\n3. Role-based check: add `require_role(role: str)` decorator that checks the token payload's role field. Return 403 for insufficient permissions.\n\nUse write_file to update auth.py.",
+          "tools": ["write_file", "run_command"],
+          "expect": {
+            "tool_calls_min": 1,
+            "output_mentions": ["login", "refresh", "role"]
+          }
+        },
+        {
+          "turn": 3,
+          "steering_event": true,
+          "inject_tool_results": [
+            {"tool_call_id": "auto", "name": "write_file", "content": "{\"status\": \"ok\", \"path\": \"auth/auth.py\", \"bytes\": 5100}"}
+          ],
+          "role": "tool_result",
+          "content": "STEERING EVENT: Security review flagged brute-force vulnerability on the login endpoint. Add rate limiting:\n\n1. Create auth/rate_limit.py with an in-memory rate limiter:\n   - Track requests per IP address using a sliding window (60 second window)\n   - Default limit: 10 requests per minute for login, 100 for other endpoints\n   - Return 429 Too Many Requests with {\"error\": \"Rate limit exceeded\", \"retry_after\": <seconds>} and Retry-After header\n2. Add a `rate_limit(max_requests: int = 10, window_seconds: int = 60)` decorator\n3. Apply it to the login and refresh handlers\n\nUse write_file to create rate_limit.py and update auth.py.",
+          "tools": ["write_file", "run_command"],
+          "expect": {
+            "tool_calls_min": 1,
+            "output_mentions": ["rate", "limit", "429"],
+            "steering_followed": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "protected-endpoints",
+      "name": "Protected Endpoints Agent",
+      "turns": [
+        {
+          "turn": 1,
+          "role": "user",
+          "content": "Build protected REST API endpoints for a note-taking app. The auth middleware is already at auth/auth.py with `require_auth(secret)` and `require_role(role)` decorators.\n\nCreate api/server.py with a Python http.server-based API:\n- SECRET = 'pawbench-secret-key-2024'\n- POST /api/login — delegates to auth module's login handler\n- GET /api/notes — returns all notes for the authenticated user (require_auth). Store notes in-memory as {user_id: [{\"id\": int, \"title\": str, \"content\": str, \"created_at\": str}]}\n- POST /api/notes — create a note (require_auth). Body: {\"title\": \"...\", \"content\": \"...\"}. Auto-assign ID and timestamp.\n- CORS headers on all responses\n- Port 8081\n\nUse write_file.",
+          "tools": ["write_file", "run_command"],
+          "expect": {
+            "tool_calls_min": 1,
+            "tool_name_any": ["write_file"],
+            "output_mentions": ["notes", "auth", "8081"]
+          }
+        },
+        {
+          "turn": 2,
+          "inject_tool_results": [
+            {"tool_call_id": "auto", "name": "write_file", "content": "{\"status\": \"ok\", \"path\": \"api/server.py\", \"bytes\": 3800}"}
+          ],
+          "role": "tool_result",
+          "content": "Server written. Add more endpoints:\n1. GET /api/notes/<id> — get a specific note (require_auth). 404 if not found or belongs to another user.\n2. PUT /api/notes/<id> — update a note (require_auth). Only the owner can update. Return 403 if not owner.\n3. DELETE /api/notes/<id> — delete a note (require_auth). Only the owner or admin role can delete. Return 403 otherwise.\n4. GET /api/admin/stats — admin-only endpoint (require_role('admin')). Returns {\"total_users\": N, \"total_notes\": N, \"notes_per_user\": {\"user1\": N}}.\n\nUse write_file to update server.py.",
+          "tools": ["write_file", "run_command"],
+          "expect": {
+            "tool_calls_min": 1,
+            "output_mentions": ["PUT", "DELETE", "admin"]
+          }
+        },
+        {
+          "turn": 3,
+          "inject_tool_results": [
+            {"tool_call_id": "auto", "name": "write_file", "content": "{\"status\": \"ok\", \"path\": \"api/server.py\", \"bytes\": 5600}"}
+          ],
+          "role": "tool_result",
+          "content": "Endpoints added. Final step: add search and pagination.\n1. GET /api/notes?q=<search>&page=1&per_page=10 — search notes by title or content (case-insensitive substring match). Paginate results. Return {\"notes\": [...], \"total\": N, \"page\": N, \"per_page\": N, \"pages\": N}.\n2. GET /api/notes?sort=created_at&order=desc — sort by created_at (asc/desc). Default: desc.\n3. Add request logging: print method, path, user_id (from token), status code, response time.\n\nUse write_file to update server.py.",
+          "tools": ["write_file", "run_command"],
+          "expect": {
+            "tool_calls_min": 1,
+            "output_mentions": ["search", "pagination", "sort"]
+          }
+        }
+      ]
+    }
+  ],
+
+  "tools_schema": [
+    {
+      "type": "function",
+      "function": {
+        "name": "write_file",
+        "description": "Write content to a file, creating directories as needed",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "path": {"type": "string", "description": "File path relative to workspace"},
+            "content": {"type": "string", "description": "File content to write"}
+          },
+          "required": ["path", "content"]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "run_command",
+        "description": "Run a shell command in the workspace",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "command": {"type": "string", "description": "Shell command to execute"}
+          },
+          "required": ["command"]
+        }
+      }
+    }
+  ]
+}

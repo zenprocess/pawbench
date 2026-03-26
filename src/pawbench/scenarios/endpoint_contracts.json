@@ -1,0 +1,17 @@
+{
+  "pawstyle": {
+    "base_url": "http://localhost:8080",
+    "endpoints": [
+      {"method": "GET", "path": "/api/products", "status": 200, "response_type": "array", "min_items": 6},
+      {"method": "GET", "path": "/api/products/1", "status": 200, "response_keys": ["id", "name", "price"]},
+      {"method": "GET", "path": "/api/products/999", "status": 404},
+      {"method": "GET", "path": "/api/health", "status": 200, "response_keys": ["status"]},
+      {"method": "POST", "path": "/api/orders", "status": 201, "request_body": {"items": [{"product_id": 1, "size": "M", "quantity": 1}]}, "response_keys": ["order_id", "total", "items_count", "message"]},
+      {"method": "POST", "path": "/api/orders", "status": 400, "request_body": {"items": []}, "description": "empty items array returns 400"},
+      {"method": "POST", "path": "/api/wishlist", "status": 200, "request_body": {"product_id": 1}, "response_keys": ["wishlisted", "wishlist", "message"]},
+      {"method": "GET", "path": "/api/wishlist", "status": 200, "response_keys": ["wishlist", "count"]},
+      {"method": "GET", "path": "/api/size-guide/generic", "status": 200, "response_keys": ["breed", "tagline", "sizes"]},
+      {"method": "GET", "path": "/api/size-guide/labrador", "status": 200, "response_keys": ["breed", "tagline", "sizes"]}
+    ]
+  }
+}

@@ -1,0 +1,85 @@
+{
+  "id": "bug-fix",
+  "name": "Calculator Bug Fix — Division by Zero and Operator Precedence",
+  "description": "Given a broken Python calculator module with division-by-zero crashes and wrong operator precedence, fix the bugs across 3 turns with injected error output between turns. Tests debugging ability and incremental fix quality.",
+
+  "agents": [
+    {
+      "id": "debugger",
+      "name": "Debugger Agent",
+      "turns": [
+        {
+          "turn": 1,
+          "role": "user",
+          "content": "We have a broken Python calculator module at calc/calculator.py. Here's the code:\n\n```python\nclass Calculator:\n    def __init__(self):\n        self.history = []\n\n    def add(self, a, b):\n        result = a + b\n        self.history.append(f\"{a} + {b} = {result}\")\n        return result\n\n    def subtract(self, a, b):\n        result = a - b\n        self.history.append(f\"{a} - {b} = {result}\")\n        return result\n\n    def multiply(self, a, b):\n        result = a * b\n        self.history.append(f\"{a} * {b} = {result}\")\n        return result\n\n    def divide(self, a, b):\n        result = a / b\n        self.history.append(f\"{a} / {b} = {result}\")\n        return result\n\n    def evaluate(self, expression):\n        \"\"\"Evaluate a simple math expression like '2 + 3 * 4'.\"\"\"\n        tokens = expression.split()\n        result = float(tokens[0])\n        i = 1\n        while i < len(tokens):\n            op = tokens[i]\n            num = float(tokens[i + 1])\n            if op == '+':\n                result = self.add(result, num)\n            elif op == '-':\n                result = self.subtract(result, num)\n            elif op == '*':\n                result = self.multiply(result, num)\n            elif op == '/':\n                result = self.divide(result, num)\n            i += 2\n        return result\n\n    def get_history(self):\n        return list(self.history)\n\n    def clear_history(self):\n        self.history.clear()\n```\n\nBugs reported:\n1. `calculator.divide(10, 0)` crashes with ZeroDivisionError instead of returning an error\n2. `calculator.evaluate('2 + 3 * 4')` returns 20 instead of 14 (doesn't respect operator precedence)\n3. `calculator.evaluate('10 / 0 + 5')` crashes the whole program\n\nRead the code and fix bug #1 first: handle division by zero gracefully. The divide method should raise a ValueError with message 'Division by zero' instead of letting ZeroDivisionError propagate. Use write_file to create the fixed module.",
+          "tools": ["write_file", "run_command"],
+          "expect": {
+            "tool_calls_min": 1,
+            "tool_name_any": ["write_file"],
+            "output_mentions": ["ZeroDivisionError", "ValueError", "divide"]
+          }
+        },
+        {
+          "turn": 2,
+          "inject_tool_results": [
+            {"tool_call_id": "auto", "name": "write_file", "content": "{\"status\": \"ok\", \"path\": \"calc/calculator.py\", \"bytes\": 1800}"},
+            {"tool_call_id": "auto", "name": "run_command", "content": "{\"status\": \"ok\", \"stdout\": \"FAILED test_evaluate_precedence - AssertionError: 20.0 != 14.0\\nFAILED test_evaluate_division_by_zero - calculator.evaluate('10 / 0 + 5') still crashes\\n2 failed, 3 passed\", \"exit_code\": 1}"}
+          ],
+          "role": "tool_result",
+          "content": "Division by zero in the divide() method is fixed, but tests show two remaining failures:\n\n1. test_evaluate_precedence: calculator.evaluate('2 + 3 * 4') returns 20.0, expected 14.0. The evaluate method processes left-to-right without respecting * and / precedence over + and -.\n2. test_evaluate_division_by_zero: calculator.evaluate('10 / 0 + 5') still crashes because evaluate() doesn't catch the ValueError from divide().\n\nFix bug #2: rewrite the evaluate() method to respect standard math operator precedence (* and / before + and -). Use a two-pass approach: first handle * and /, then handle + and -. Use write_file.",
+          "tools": ["write_file", "run_command"],
+          "expect": {
+            "tool_calls_min": 1,
+            "output_mentions": ["precedence", "multiply", "divide"]
+          }
+        },
+        {
+          "turn": 3,
+          "inject_tool_results": [
+            {"tool_call_id": "auto", "name": "write_file", "content": "{\"status\": \"ok\", \"path\": \"calc/calculator.py\", \"bytes\": 2600}"},
+            {"tool_call_id": "auto", "name": "run_command", "content": "{\"status\": \"ok\", \"stdout\": \"FAILED test_evaluate_division_by_zero - ValueError not caught in evaluate\\n1 failed, 4 passed\", \"exit_code\": 1}"}
+          ],
+          "role": "tool_result",
+          "content": "Precedence is fixed! But one test still fails:\n\ntest_evaluate_division_by_zero: evaluate('10 / 0 + 5') raises ValueError instead of returning an error result. The evaluate() method should catch ValueError from divide() and return float('nan') for expressions containing division by zero, with an appropriate history entry like '10 / 0 = ERROR(Division by zero)'.\n\nFix this last bug and also add input validation: evaluate() should raise ValueError with 'Invalid expression' if the expression is empty, has invalid tokens, or has mismatched operator/number pairs. Use write_file.",
+          "tools": ["write_file", "run_command"],
+          "expect": {
+            "tool_calls_min": 1,
+            "output_mentions": ["nan", "evaluate", "validation"]
+          }
+        }
+      ]
+    }
+  ],
+
+  "tools_schema": [
+    {
+      "type": "function",
+      "function": {
+        "name": "write_file",
+        "description": "Write content to a file, creating directories as needed",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "path": {"type": "string", "description": "File path relative to workspace"},
+            "content": {"type": "string", "description": "File content to write"}
+          },
+          "required": ["path", "content"]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "run_command",
+        "description": "Run a shell command in the workspace",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "command": {"type": "string", "description": "Shell command to execute"}
+          },
+          "required": ["command"]
+        }
+      }
+    }
+  ]
+}
