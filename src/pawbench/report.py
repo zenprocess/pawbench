@@ -99,6 +99,16 @@ def print_report(report: BenchmarkReport) -> None:
     print(f"  Steering success:     {_cpct(d4.get('steering_rate', 0))}")
     print(f"  Nudge quality:        {_cpct(d4.get('nudge_quality', 0))}")
 
+    # Dim 5
+    if report.sandbox_score > 0:
+        print(f"\n  {B}DIM 5 — CORRECTNESS{R}")
+        print(f"  {'─' * 50}")
+        print(f"  Sandbox pass rate:    {_cpct(report.sandbox_score)}")
+        for s in report.scenarios:
+            s_d = s if isinstance(s, dict) else asdict(s)
+            if s_d.get("sandbox_score", 0) > 0:
+                print(f"    {s_d['scenario_name'][:35]:35s} {_cpct(s_d['sandbox_score'])}")
+
     # Server metrics
     sm = report.server_metrics
     if sm:

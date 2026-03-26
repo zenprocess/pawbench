@@ -85,6 +85,7 @@ class ScenarioReport:
     tokens_per_turn: float = 0.0
     steering_rate: float = 0.0
     nudge_response_quality: float = 0.0
+    sandbox_score: float = 0.0
 
 
 @dataclass
@@ -115,4 +116,5 @@ class BenchmarkReport:
     dim4_adaptability: dict[str, Any] = field(default_factory=dict)
     saturation_curve: list[SaturationPoint] = field(default_factory=list)
     concurrency_curve: list[dict[str, Any]] = field(default_factory=list)
+    sandbox_score: float = 0.0
     server_metrics: dict[str, Any] = field(default_factory=dict)

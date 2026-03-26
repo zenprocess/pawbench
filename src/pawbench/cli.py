@@ -16,6 +16,7 @@ from pawbench.banner import print_banner
 from pawbench.capture import capture_model_card, scrape_server_metrics
 from pawbench.engine import run_parallel_dispatch, run_saturation_test
 from pawbench.report import print_report
+from pawbench.sandbox import SandboxEvaluator
 from pawbench.scoring import useful_ratio
 from pawbench.types import BenchmarkReport, ScenarioReport
 
@@ -51,7 +52,7 @@ def _run_scenario(
     scenario: dict,
     concurrency_levels: list[int],
     runs: int,
-) -> tuple[ScenarioReport, list]:
+) -> tuple[ScenarioReport, list, list]:
     sr = ScenarioReport(scenario_id=scenario["id"], scenario_name=scenario["name"])
     all_cr = []
     all_agents = []
@@ -88,7 +89,7 @@ def _run_scenario(
     if steering_turns:
         sr.nudge_response_quality = sum(t.quality_score for t in steering_turns) / len(steering_turns)
 
-    return sr, all_cr
+    return sr, all_cr, all_agents
 
 
 def main():
@@ -118,6 +119,9 @@ def main():
     )
     parser.add_argument("--no-saturation", action="store_true", help="Skip raw saturation test")
     parser.add_argument("--json", action="store_true", help="Output raw JSON instead of human-readable report")
+    parser.add_argument(
+        "--sandbox", action="store_true", help="Run execution-based correctness scoring on generated code"
+    )
     parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     args = parser.parse_args()
 
@@ -145,14 +149,24 @@ def main():
             if not args.json:
                 print(f"  Running: {scenario['name']} ...", end="", flush=True)
 
-            sr, crs = _run_scenario(args.endpoint, model, scenario, conc_levels, args.runs)
+            sr, crs, agents = _run_scenario(args.endpoint, model, scenario, conc_levels, args.runs)
+
+            # Sandbox correctness scoring (opt-in)
+            if args.sandbox and agents:
+                evaluator = SandboxEvaluator(scenario["id"])
+                sr.sandbox_score = evaluator.average_score(agents)
+
             scenario_reports.append(sr)
 
             for cr in crs:
                 all_concurrency_data.setdefault(cr.concurrency, []).append(cr)
 
+            sandbox_info = f"  sandbox={sr.sandbox_score:.0%}" if args.sandbox else ""
             if not args.json:
-                print(f" tok/s={sr.single_tok_s:.1f}  quality={sr.avg_quality:.0%}  steer={sr.steering_rate:.0%}")
+                print(
+                    f" tok/s={sr.single_tok_s:.1f}  quality={sr.avg_quality:.0%}"
+                    f"  steer={sr.steering_rate:.0%}{sandbox_info}"
+                )
 
     # Raw saturation test
     saturation_curve = []
@@ -187,6 +201,9 @@ def main():
     independent = [s for s in valid_scenarios if "independent" in s.scenario_id]
     nudged = [s for s in valid_scenarios if "nudge" in s.scenario_id]
 
+    sandbox_scores = [s.sandbox_score for s in scenario_reports if s.sandbox_score > 0]
+    avg_sandbox = sum(sandbox_scores) / len(sandbox_scores) if sandbox_scores else 0.0
+
     report = BenchmarkReport(
         tag=args.tag,
         timestamp=datetime.now(timezone.utc).isoformat(),
@@ -194,6 +211,7 @@ def main():
         model_card=model_card,
         runs=args.runs,
         scenarios=scenario_reports,
+        sandbox_score=avg_sandbox,
         saturation_curve=saturation_curve,
         concurrency_curve=conc_curve,
         server_metrics=server_metrics,
