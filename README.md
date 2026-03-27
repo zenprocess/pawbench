@@ -5,9 +5,15 @@
 <h1 align="center">PawBench</h1>
 
 <p align="center">
-  <strong>Because your model deserves a benchmark with more bark than bite.</strong><br>
-  4-dimensional LLM inference benchmark. Multi-turn, multi-agent, parallel dispatch with tool calling.
+  <strong>Because your model deserves a benchmark with more bark than bite.</strong>
 </p>
+
+<p align="center">
+  4-dimensional LLM inference benchmark.<br>
+  Multi-turn, multi-agent, parallel dispatch with tool calling.
+</p>
+
+<br>
 
 <p align="center">
   <a href="https://github.com/zenprocess/pawbench/actions/workflows/ci.yml"><img src="https://github.com/zenprocess/pawbench/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
@@ -19,15 +25,31 @@
   <a href="https://zenprocess.github.io/pawbench/"><img src="https://img.shields.io/badge/docs-GitHub%20Pages-blue" alt="Docs"></a>
 </p>
 
+<br>
+
 ---
 
-Tests your model with realistic coding agent workloads — not synthetic single-turn completions.
+<br>
+
+## About
+
+PawBench tests LLMs with **realistic coding agent workloads** — not synthetic single-turn completions.
+
+It simulates what actually happens when you deploy coding agents: multi-turn conversations, parallel tool calling, mid-task steering events, and cross-agent coordination. Then it measures four dimensions: **throughput**, **quality**, **efficiency**, and **adaptability**.
+
+Works against any OpenAI-compatible endpoint — vLLM, TGI, OpenAI, Ollama, LMStudio.
+
+<br>
 
 ## Meet Lola
 
-PawBench is inspired by **Lola** ([@_justlolathings](https://www.instagram.com/_justlolathings/)) — the most fashionable pup on Instagram. The built-in scenarios revolve around building her boutique dog apparel store, PawStyle by Lola. Every product, every size guide, every "Lola's Pick" badge traces back to this style icon on four legs.
+PawBench is inspired by **Lola** ([@_justlolathings](https://www.instagram.com/_justlolathings/)) — the most fashionable pup on Instagram.
 
-Follow Lola: [https://www.instagram.com/_justlolathings/](https://www.instagram.com/_justlolathings/)
+The built-in scenarios revolve around building her boutique dog apparel store, *PawStyle by Lola*. Every product, every size guide, every "Lola's Pick" badge traces back to this style icon on four legs.
+
+Follow Lola: [instagram.com/_justlolathings](https://www.instagram.com/_justlolathings/)
+
+<br>
 
 ## Install
 
@@ -36,6 +58,8 @@ pip install pawbench
 # or
 uv pip install pawbench
 ```
+
+<br>
 
 ## Quick Start
 
@@ -56,6 +80,8 @@ pawbench --json --output results/
 pawbench --scenario my_scenario.json
 ```
 
+<br>
+
 ## What It Measures
 
 ### 4 Dimensions
@@ -67,22 +93,29 @@ pawbench --scenario my_scenario.json
 | **Efficiency** | Useful token ratio (code in tool args vs filler preamble), tokens per turn |
 | **Adaptability** | Steering event response, mid-conversation context injection, nudge quality delta |
 
+<br>
+
 ### Built-in Scenarios: PawStyle by Lola
 
-Two parallel agents build Lola's boutique dog apparel e-commerce store — "Where every pup is a fashionista":
+Two parallel agents build Lola's boutique dog apparel e-commerce store — *"Where every pup is a fashionista"*:
 
 - **`pawstyle-independent`** — Frontend and backend work independently on Lola's shop. Pure parallel throughput + quality baseline.
 - **`pawstyle`** — Backend gets a steering event mid-task ("frontend added a Size Guide button — implement Lola's breed-specific sizing endpoint").
 - **`pawstyle-nudge`** — Frontend adds Lola's Favorites (wishlist) and Compare features that require backend changes. Backend receives nudges and adapts.
 
-Each scenario is 3 turns x 2 agents, with tool calls (write_file, read_file, run_command) and injected tool results. Products include Lola's Signature Bandana, Cozy Knit Sweater, Rainy Day Raincoat, Adventure Booties, Dapper Bow Tie, and Walk-in-Style Harness — with "Lola's Pick" badges on her personal favorites.
+Each scenario is 3 turns x 2 agents, with tool calls (`write_file`, `read_file`, `run_command`) and injected tool results. Products include Lola's Signature Bandana, Cozy Knit Sweater, Rainy Day Raincoat, Adventure Booties, Dapper Bow Tie, and Walk-in-Style Harness — with "Lola's Pick" badges on her personal favorites.
+
+<br>
 
 ### Server Metrics (optional)
 
 If the endpoint exposes `/metrics` (vLLM, TGI), PawBench scrapes:
+
 - KV cache usage and prefix cache hit rate
 - Speculative decoding acceptance rate
 - GPU cache pressure
+
+<br>
 
 ## Custom Scenarios
 
@@ -115,6 +148,8 @@ Scenarios are JSON files:
 }
 ```
 
+<br>
+
 ## Comparing Configs
 
 ```bash
@@ -122,8 +157,10 @@ pawbench --tag baseline --output results/
 # ... change model config ...
 pawbench --tag eagle3 --output results/
 
-python -m pawbench.compare results/pawbench_baseline_*.json results/pawbench_eagle3_*.json
+pawbench-compare results/pawbench_baseline_*.json results/pawbench_eagle3_*.json
 ```
+
+<br>
 
 ## Output Format
 
@@ -134,16 +171,18 @@ JSON results include full model card (architecture, quantization, GPU, serving p
   "tag": "fp8-eagle3-spec3",
   "model_card": {
     "model_name": "qwen3-coder",
-    "model_config": {"architectures": ["Qwen3NextForCausalLM"], "num_experts": 512, "...": "..."},
-    "tuning": {"kv_cache_dtype": "fp8_e4m3", "speculative_config": "eagle3", "...": "..."},
-    "gpu": {"name": "NVIDIA GB10", "...": "..."}
+    "model_config": {"architectures": ["Qwen3NextForCausalLM"], "num_experts": 512},
+    "tuning": {"kv_cache_dtype": "fp8_e4m3", "speculative_config": "eagle3"},
+    "gpu": {"name": "NVIDIA GB10"}
   },
-  "dim1_throughput": {"avg_single_tok_s": 69.0, "raw_peak_tok_s": 469.3, "...": "..."},
-  "dim2_quality": {"avg_quality": 0.81, "tool_accuracy": 0.96, "...": "..."},
+  "dim1_throughput": {"avg_single_tok_s": 69.0, "raw_peak_tok_s": 469.3},
+  "dim2_quality": {"avg_quality": 0.81, "tool_accuracy": 0.96},
   "saturation_curve": [{"concurrency": 1, "tok_s": 69.3}, {"concurrency": 8, "tok_s": 469.3}],
   "server_metrics": {"spec_acceptance_rate": 0.72, "gpu_prefix_cache_hit_rate": 0.92}
 }
 ```
+
+<br>
 
 ## License
 
