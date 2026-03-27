@@ -184,6 +184,24 @@ JSON results include full model card (architecture, quantization, GPU, serving p
 
 <br>
 
+## Why PawBench Exists
+
+Karpathy's [autoresearch](https://github.com/karpathy/autoresearch) showed that an AI agent can autonomously run ML experiments overnight — modify, train, evaluate, repeat. PawBench extends that idea to **inference serving**: what if an agent could autonomously tune your model config, benchmark it, and keep the best result?
+
+The problem is that LLM serving optimization is gatekept. The best configs — speculative decoding heads, MoE kernel tuning, KV cache quantization strategies — live in private Discord channels and undocumented tribal knowledge. A team with an H100 cluster can spend weeks finding the right settings. A solo dev with a single GPU doesn't have that luxury.
+
+PawBench is the benchmark harness for that loop. Run it, change your config, run it again, compare. The [Serving Card](https://servingcard.dev) initiative takes it further — standardizing how model serving configs are documented and shared, so the community can build on each other's work instead of rediscovering the same optimizations in isolation.
+
+Democratize the configs. Benchmark everything. Share what works.
+
+<br>
+
+## Disclaimer
+
+This project has been entirely vibe coded. Two humans, several AI agents, one very fashionable dog, and a mass of mass energy that mass produced some mass code. If something breaks, it was probably the cat's fault (see [commit history](https://github.com/zenprocess/pawbench/commit/9d36c56)).
+
+<br>
+
 ## License
 
 MIT
