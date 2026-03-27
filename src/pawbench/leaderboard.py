@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import shutil
 from pathlib import Path
+from typing import Any
 
 SCHEMA_PATH = Path(__file__).resolve().parent.parent.parent / "leaderboard" / "schema.json"
 
@@ -15,7 +16,7 @@ def _load_schema() -> dict:
         return json.load(f)
 
 
-def _validate_type(value: object, prop_schema: dict, field_name: str) -> list[str]:
+def _validate_type(value: Any, prop_schema: dict[str, Any], field_name: str) -> list[str]:
     """Validate a single value against its property schema. Returns list of errors."""
     errors: list[str] = []
     expected_type = prop_schema.get("type")

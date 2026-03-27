@@ -182,7 +182,7 @@ def evaluate_agent(
         if not _wait_for_server(port):
             stderr = ""
             if proc.poll() is not None:
-                stderr = (proc.stderr.read() or b"").decode(errors="replace")[:500]
+                stderr = (proc.stderr.read() if proc.stderr else b"").decode(errors="replace")[:500]
             result.error = f"Server did not start within {SERVER_START_TIMEOUT}s. stderr: {stderr}"
             return result
 
