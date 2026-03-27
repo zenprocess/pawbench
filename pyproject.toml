@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "pawbench"
-version = "1.1.2"
+version = "1.1.4"
 description = "4-dimensional LLM inference benchmark — multi-turn, multi-agent, parallel dispatch with tool calling"
 readme = "README.md"
 license = "MIT"
@@ -45,9 +45,6 @@ Repository = "https://github.com/zenprocess/pawbench"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/pawbench"]
-
-[tool.hatch.build.targets.wheel.force-include]
-"src/pawbench/scenarios" = "pawbench/scenarios"
 
 [tool.ruff]
 line-length = 120
