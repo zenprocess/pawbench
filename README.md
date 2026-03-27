@@ -1,24 +1,25 @@
-# PawBench 🐾
+<p align="center">
+  <img src="assets/pawbench.png" alt="PawBench" width="200">
+</p>
 
-[![CI](https://github.com/zenprocess/pawbench/actions/workflows/ci.yml/badge.svg)](https://github.com/zenprocess/pawbench/actions/workflows/ci.yml)
-[![codecov](https://codecov.io/gh/zenprocess/pawbench/graph/badge.svg)](https://codecov.io/gh/zenprocess/pawbench)
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=zenprocess_pawbench&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=zenprocess_pawbench)
-[![PyPI version](https://badge.fury.io/py/pawbench.svg)](https://pypi.org/project/pawbench/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
-[![Documentation](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://zenprocess.github.io/pawbench/)
+<h1 align="center">PawBench</h1>
 
-```text
-    / \__
-   (    @\___    PawBench
-  /         O   4-dimensional LLM inference benchmark
- /   (_____/    "More bark than bite"
-/_____/   U
-```
+<p align="center">
+  <strong>Because your model deserves a benchmark with more bark than bite.</strong><br>
+  4-dimensional LLM inference benchmark. Multi-turn, multi-agent, parallel dispatch with tool calling.
+</p>
 
-**Because your model deserves a benchmark with more bark than bite.**
+<p align="center">
+  <a href="https://github.com/zenprocess/pawbench/actions/workflows/ci.yml"><img src="https://github.com/zenprocess/pawbench/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://codecov.io/gh/zenprocess/pawbench"><img src="https://codecov.io/gh/zenprocess/pawbench/graph/badge.svg" alt="codecov"></a>
+  <a href="https://sonarcloud.io/summary/new_code?id=zenprocess_pawbench"><img src="https://sonarcloud.io/api/project_badges/measure?project=zenprocess_pawbench&metric=alert_status" alt="Quality Gate"></a>
+  <a href="https://pypi.org/project/pawbench/"><img src="https://badge.fury.io/py/pawbench.svg" alt="PyPI"></a>
+  <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License"></a>
+  <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.10+-blue.svg" alt="Python"></a>
+  <a href="https://zenprocess.github.io/pawbench/"><img src="https://img.shields.io/badge/docs-GitHub%20Pages-blue" alt="Docs"></a>
+</p>
 
-4-dimensional LLM inference benchmark for OpenAI-compatible endpoints. Multi-turn, multi-agent, parallel dispatch with tool calling.
+---
 
 Tests your model with realistic coding agent workloads — not synthetic single-turn completions.
 
