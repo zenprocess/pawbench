@@ -136,6 +136,12 @@ def main():
         metavar="DIR",
         help="Record API responses as fixtures to DIR for future --mock runs",
     )
+    parser.add_argument(
+        "--servingcard",
+        default=None,
+        metavar="PATH",
+        help="Export results as a ServingCard file (.json or .yaml) for servingcard.dev",
+    )
     parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     args = parser.parse_args()
 
@@ -298,6 +304,18 @@ def main():
             json.dump(asdict(report), f, indent=2, default=str)
         if not args.json:
             print(f"  Saved to {out_file}")
+
+    if args.servingcard:
+        from pawbench.servingcard import export_servingcard, export_servingcard_yaml
+
+        sc_path = Path(args.servingcard)
+        if sc_path.suffix in (".yaml", ".yml"):
+            export_servingcard_yaml(report, sc_path)
+        else:
+            export_servingcard(report, sc_path)
+        if not args.json:
+            print(f"  ServingCard exported to {sc_path}")
+            print("  Submit to https://servingcard.dev")
 
 
 if __name__ == "__main__":
