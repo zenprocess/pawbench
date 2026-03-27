@@ -70,6 +70,9 @@ module = [
     "pawbench.report",
     "pawbench.engine",
     "pawbench.capture",
+    "pawbench.leaderboard",
+    "pawbench.sandbox",
+    "pawbench.mock",
 ]
 ignore_errors = true
 
