@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 60">
+  <defs>
+    <linearGradient id="footer-line" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0"/>
+      <stop offset="30%" stop-color="#ffffff" stop-opacity="0.3"/>
+      <stop offset="70%" stop-color="#ffffff" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="60" fill="transparent"/>
+  <line x1="0" y1="8" x2="400" y2="8" stroke="url(#footer-line)" stroke-width="1"/>
+  <text x="200" y="40" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#8888aa" letter-spacing="0.05em">
+    Part of <tspan fill="#aaaacc" font-weight="600">standra.ai</tspan>
+  </text>
+</svg>

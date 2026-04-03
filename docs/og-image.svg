@@ -1,0 +1,122 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630">
+  <defs>
+    <!-- Background gradient -->
+    <linearGradient id="bg" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#0a0a0f"/>
+      <stop offset="50%" stop-color="#0f1729"/>
+      <stop offset="100%" stop-color="#0a0a0f"/>
+    </linearGradient>
+    <!-- Accent gradient -->
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#00cc88"/>
+      <stop offset="33%" stop-color="#33ddaa"/>
+      <stop offset="66%" stop-color="#66eecc"/>
+      <stop offset="100%" stop-color="#99ffdd"/>
+    </linearGradient>
+    <!-- Accent gradient vertical (for icon) -->
+    <linearGradient id="accent-v" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#00cc88"/>
+      <stop offset="100%" stop-color="#66eecc"/>
+    </linearGradient>
+    <!-- Grid pattern -->
+    <pattern id="grid" width="60" height="60" patternUnits="userSpaceOnUse">
+      <path d="M 60 0 L 0 0 0 60" fill="none" stroke="#ffffff" stroke-opacity="0.04" stroke-width="1"/>
+    </pattern>
+    <!-- Glow filter -->
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect width="1200" height="630" fill="url(#grid)"/>
+
+  <!-- Top accent line -->
+  <rect x="0" y="0" width="1200" height="3" fill="url(#accent)" opacity="0.8"/>
+
+  <!-- Icon: measurement gauge (abstract) -->
+  <g transform="translate(80, 80)">
+    <!-- Gauge arc -->
+    <path d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="url(#accent-v)" stroke-width="3" stroke-linecap="round" opacity="0.7"/>
+    <!-- Gauge needle -->
+    <line x1="50" y1="50" x2="75" y2="20" stroke="#00cc88" stroke-width="2.5" stroke-linecap="round" filter="url(#glow)"/>
+    <!-- Gauge center dot -->
+    <circle cx="50" cy="50" r="4" fill="#33ddaa"/>
+    <!-- Tick marks -->
+    <line x1="15" y1="35" x2="20" y2="40" stroke="#66eecc" stroke-width="1.5" opacity="0.5"/>
+    <line x1="50" y1="12" x2="50" y2="18" stroke="#66eecc" stroke-width="1.5" opacity="0.5"/>
+    <line x1="85" y1="35" x2="80" y2="40" stroke="#66eecc" stroke-width="1.5" opacity="0.5"/>
+  </g>
+
+  <!-- Title -->
+  <text x="80" y="210" font-family="'SF Mono', 'Fira Code', 'JetBrains Mono', monospace" font-size="82" font-weight="700" fill="#ffffff" letter-spacing="0.05em">PAWBENCH</text>
+
+  <!-- Tagline -->
+  <text x="84" y="255" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="24" fill="#8888aa" letter-spacing="0.02em">4-dimensional LLM inference benchmark</text>
+
+  <!-- Feature pills -->
+  <g transform="translate(80, 290)">
+    <!-- Pill: Throughput -->
+    <rect x="0" y="0" width="130" height="36" rx="18" fill="none" stroke="#00cc88" stroke-opacity="0.5" stroke-width="1"/>
+    <text x="65" y="23" text-anchor="middle" font-family="system-ui, sans-serif" font-size="13" fill="#33ddaa" letter-spacing="0.03em">Throughput</text>
+    <!-- Pill: Quality -->
+    <rect x="145" y="0" width="100" height="36" rx="18" fill="none" stroke="#00cc88" stroke-opacity="0.5" stroke-width="1"/>
+    <text x="195" y="23" text-anchor="middle" font-family="system-ui, sans-serif" font-size="13" fill="#33ddaa" letter-spacing="0.03em">Quality</text>
+    <!-- Pill: Efficiency -->
+    <rect x="260" y="0" width="120" height="36" rx="18" fill="none" stroke="#00cc88" stroke-opacity="0.5" stroke-width="1"/>
+    <text x="320" y="23" text-anchor="middle" font-family="system-ui, sans-serif" font-size="13" fill="#33ddaa" letter-spacing="0.03em">Efficiency</text>
+    <!-- Pill: Adaptability -->
+    <rect x="395" y="0" width="132" height="36" rx="18" fill="none" stroke="#00cc88" stroke-opacity="0.5" stroke-width="1"/>
+    <text x="461" y="23" text-anchor="middle" font-family="system-ui, sans-serif" font-size="13" fill="#33ddaa" letter-spacing="0.03em">Adaptability</text>
+    <!-- Pill: Multi-Agent -->
+    <rect x="542" y="0" width="128" height="36" rx="18" fill="none" stroke="#00cc88" stroke-opacity="0.5" stroke-width="1"/>
+    <text x="606" y="23" text-anchor="middle" font-family="system-ui, sans-serif" font-size="13" fill="#33ddaa" letter-spacing="0.03em">Multi-Agent</text>
+  </g>
+
+  <!-- Architecture mini-diagram -->
+  <g transform="translate(80, 400)">
+    <!-- Pipeline boxes -->
+    <rect x="0" y="0" width="120" height="44" rx="6" fill="#0a0a0f" stroke="#00cc88" stroke-opacity="0.3" stroke-width="1"/>
+    <text x="60" y="27" text-anchor="middle" font-family="'SF Mono', monospace" font-size="12" fill="#66eecc">Scenario</text>
+
+    <rect x="160" y="0" width="120" height="44" rx="6" fill="#0a0a0f" stroke="#00cc88" stroke-opacity="0.3" stroke-width="1"/>
+    <text x="220" y="27" text-anchor="middle" font-family="'SF Mono', monospace" font-size="12" fill="#66eecc">Agent Loop</text>
+
+    <rect x="320" y="0" width="120" height="44" rx="6" fill="#0a0a0f" stroke="#00cc88" stroke-opacity="0.3" stroke-width="1"/>
+    <text x="380" y="27" text-anchor="middle" font-family="'SF Mono', monospace" font-size="12" fill="#66eecc">Tool Calls</text>
+
+    <rect x="480" y="0" width="120" height="44" rx="6" fill="#0a0a0f" stroke="#00cc88" stroke-opacity="0.3" stroke-width="1"/>
+    <text x="540" y="27" text-anchor="middle" font-family="'SF Mono', monospace" font-size="12" fill="#66eecc">Scoring</text>
+
+    <rect x="640" y="0" width="120" height="44" rx="6" fill="#0a0a0f" stroke="#00cc88" stroke-opacity="0.3" stroke-width="1"/>
+    <text x="700" y="27" text-anchor="middle" font-family="'SF Mono', monospace" font-size="12" fill="#66eecc">Report</text>
+
+    <!-- Arrows -->
+    <line x1="122" y1="22" x2="158" y2="22" stroke="#00cc88" stroke-opacity="0.4" stroke-width="1" marker-end="url(#arrow-pb)"/>
+    <line x1="282" y1="22" x2="318" y2="22" stroke="#00cc88" stroke-opacity="0.4" stroke-width="1"/>
+    <line x1="442" y1="22" x2="478" y2="22" stroke="#00cc88" stroke-opacity="0.4" stroke-width="1"/>
+    <line x1="602" y1="22" x2="638" y2="22" stroke="#00cc88" stroke-opacity="0.4" stroke-width="1"/>
+
+    <!-- Arrow heads (simple triangles) -->
+    <polygon points="158,18 158,26 152,22" fill="#00cc88" opacity="0.4"/>
+    <polygon points="318,18 318,26 312,22" fill="#00cc88" opacity="0.4"/>
+    <polygon points="478,18 478,26 472,22" fill="#00cc88" opacity="0.4"/>
+    <polygon points="638,18 638,26 632,22" fill="#00cc88" opacity="0.4"/>
+  </g>
+
+  <!-- standra.ai badge (bottom-right) -->
+  <g transform="translate(1020, 570)">
+    <rect x="0" y="0" width="150" height="32" rx="16" fill="#0a0a0f" stroke="#ffffff" stroke-opacity="0.1" stroke-width="1"/>
+    <text x="75" y="21" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" fill="#8888aa" letter-spacing="0.05em">
+      <tspan fill="#aaaacc" font-weight="600">standra</tspan>.ai
+    </text>
+  </g>
+
+  <!-- Bottom accent line -->
+  <rect x="0" y="627" width="1200" height="3" fill="url(#accent)" opacity="0.4"/>
+</svg>

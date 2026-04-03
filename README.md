@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/pawbench.png" alt="PawBench" width="200">
+  <img src="docs/og-image.svg" alt="PawBench" width="800" />
 </p>
 
 <h1 align="center">PawBench</h1>
@@ -205,3 +205,8 @@ This project has been entirely vibe coded. Two humans, several AI agents, one ve
 ## License
 
 MIT
+
+---
+<p align="center">
+  <img src="docs/standra-footer.svg" alt="Part of standra.ai" width="400" />
+</p>
