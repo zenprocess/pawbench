@@ -39,6 +39,12 @@ It simulates what actually happens when you deploy coding agents: multi-turn con
 
 Works against any OpenAI-compatible endpoint — vLLM, TGI, OpenAI, Ollama, LMStudio.
 
+> **Inspired by** Fabian Wesner's [One-Shot Shop Challenge](https://agentic-engineers.dev)
+> ([announcement](https://www.linkedin.com/posts/fabian-wesner_oneshotshop-share-7442096217976897536-SRI9/)) —
+> the study that showed orchestration architecture beats model choice (Team Mode 85% vs Sub-Agents 57% on the same model).
+> Pawbench's orchestration × complexity matrix operationalizes that finding inside a reproducible benchmark.
+> See [spec 009](https://github.com/zenprocess/switchyard/blob/main/specs/009-pawbench-orchestration-axis/spec.md).
+
 <br>
 
 ## Meet Lola
