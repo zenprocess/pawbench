@@ -25,6 +25,8 @@ class TurnResult:
     quality_score: float = 0.0
     steering_followed: bool = False
     error: str = ""
+    # Spec 009 / B2 — complexity stratification
+    complexity_tier: str | None = None
 
 
 @dataclass
@@ -118,3 +120,11 @@ class BenchmarkReport:
     concurrency_curve: list[dict[str, Any]] = field(default_factory=list)
     sandbox_score: float = 0.0
     server_metrics: dict[str, Any] = field(default_factory=dict)
+    # Spec 009 — orchestration × complexity matrix additions
+    dim5_artifact_quality: dict[str, Any] = field(default_factory=dict)
+    quality_by_tier: dict[str, float] = field(default_factory=dict)
+    orchestration_results: list[dict[str, Any]] = field(default_factory=list)
+    orchestration_dqs_spread: float = 0.0
+    ablation: dict[str, Any] = field(default_factory=dict)
+    dqs: dict[str, Any] = field(default_factory=dict)
+    spec_version: str = "spec-009"

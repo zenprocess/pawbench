@@ -6,7 +6,8 @@ import json
 import re
 from typing import Any, Callable
 
-from pawbench.types import TurnResult
+from pawbench.complexity import ComplexityTier, tier_for_turn
+from pawbench.types import AgentResult, TurnResult
 
 
 # ---------------------------------------------------------------------------
@@ -107,6 +108,68 @@ def score_turn(turn_spec: dict[str, Any], result: TurnResult) -> float:
 # ---------------------------------------------------------------------------
 # Efficiency metrics
 # ---------------------------------------------------------------------------
+
+
+def _resolve_agent_spec(agent_id: str, agent_lookup: dict[str, dict[str, Any]]) -> dict[str, Any]:
+    """Look up the scenario agent spec, tolerating parallel-dispatch suffixes."""
+    spec = agent_lookup.get(agent_id)
+    if spec is not None:
+        return spec
+    for stem, candidate in agent_lookup.items():
+        if agent_id.startswith(stem):
+            return candidate
+    return {}
+
+
+def _turn_spec_at(agent_spec: dict[str, Any], turn_index: int) -> dict[str, Any]:
+    """Safe positional lookup of a turn spec by zero-based index."""
+    turns = agent_spec.get("turns", [])
+    if 0 <= turn_index < len(turns):
+        return turns[turn_index]
+    return {}
+
+
+def _resolve_tier(
+    turn_spec: dict[str, Any],
+    agent_tier: ComplexityTier | None,
+    scenario_tier: ComplexityTier | None,
+) -> ComplexityTier:
+    """Apply the canonical priority: turn → agent → scenario → inference."""
+    return (
+        ComplexityTier.parse(turn_spec.get("complexity_tier"))
+        or agent_tier
+        or scenario_tier
+        or tier_for_turn(turn_spec)
+    )
+
+
+def quality_by_tier(
+    agents: list[AgentResult],
+    scenario: dict[str, Any],
+) -> dict[str, float]:
+    """Aggregate per-tier quality across all agents in a scenario.
+
+    Spec 009 / B2 — stratifies quality by complexity tier so aggregate
+    numbers can't mask tier-specific cliffs. Tier resolution priority:
+    turn-level → agent-level → scenario-level → heuristic inference.
+    """
+    scenario_tier = ComplexityTier.parse(scenario.get("complexity_tier"))
+    agent_lookup = {a["id"]: a for a in scenario.get("agents", [])}
+    by_tier: dict[str, list[float]] = {}
+
+    for agent_result in agents:
+        if agent_result.error:
+            continue
+        agent_spec = _resolve_agent_spec(agent_result.agent_id, agent_lookup)
+        agent_tier = ComplexityTier.parse(agent_spec.get("complexity_tier"))
+
+        for turn_result in agent_result.turns:
+            turn_spec = _turn_spec_at(agent_spec, turn_result.turn - 1)
+            tier = _resolve_tier(turn_spec, agent_tier, scenario_tier)
+            turn_result.complexity_tier = tier.value
+            by_tier.setdefault(tier.value, []).append(turn_result.quality_score)
+
+    return {tier: sum(scores) / len(scores) for tier, scores in by_tier.items() if scores}
 
 
 def useful_ratio(text: str, tool_calls: list[dict[str, Any]] | None = None) -> float:

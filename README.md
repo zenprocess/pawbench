@@ -39,6 +39,12 @@ It simulates what actually happens when you deploy coding agents: multi-turn con
 
 Works against any OpenAI-compatible endpoint — vLLM, TGI, OpenAI, Ollama, LMStudio.
 
+> **Inspired by** Fabian Wesner's [One-Shot Shop Challenge](https://agentic-engineers.dev)
+> ([announcement](https://www.linkedin.com/posts/fabian-wesner_oneshotshop-share-7442096217976897536-SRI9/)) —
+> the study that showed orchestration architecture beats model choice (Team Mode 85% vs Sub-Agents 57% on the same model).
+> Pawbench's orchestration × complexity matrix operationalizes that finding inside a reproducible benchmark.
+> See [spec 009](https://github.com/zenprocess/switchyard/blob/main/specs/009-pawbench-orchestration-axis/spec.md).
+
 <br>
 
 ## Meet Lola
@@ -84,7 +90,7 @@ pawbench --scenario my_scenario.json
 
 ## What It Measures
 
-### 4 Dimensions
+### 4 Dimensions + Spec 009 Matrix
 
 | Dimension | Metrics |
 |---|---|
@@ -92,6 +98,22 @@ pawbench --scenario my_scenario.json
 | **Quality** | Tool call accuracy, instruction following, format compliance, keyword matching |
 | **Efficiency** | Useful token ratio (code in tool args vs filler preamble), tokens per turn |
 | **Adaptability** | Steering event response, mid-conversation context injection, nudge quality delta |
+| **Artifact Quality** *(spec 009)* | Static analysis over changed files (ruff/mypy/radon for Python, generic fallback otherwise). Orthogonal to AC pass. |
+| **Complexity Tier** *(spec 009)* | Per-task tagging — `display` / `crud` / `transactional` / `cross_cutting` — with stratified `quality_by_tier` reporting. |
+| **Orchestration Shape** *(spec 009)* | Same scenario × 5 shapes (`flat` / `waves` / `scatter-gather` / `team-mode` / `subagents`) → `orchestration_dqs_spread` SLI. |
+| **DQS** *(spec 009)* | Composite Dispatch Quality Score v1.0.0 with auditable weights + post-hoc ablation matrix. |
+
+### New flags (spec 009)
+
+```bash
+pawbench --orchestration flat,waves,scatter-gather,team-mode,subagents
+pawbench --ablate quality,format_compliance,tool_accuracy,useful_ratio,steering_rate
+pawbench --context-tier manifest-only
+pawbench --verification-runs 2
+pawbench --no-quality-analysis
+```
+
+The orchestration matrix scenario (`pawstyle-orchestration-matrix`) is designed to differentiate shapes — four independent feature blocks, one per complexity tier. Inspired by Fabian Wesner's [One-Shot Shop Challenge](https://agentic-engineers.dev) (orchestration > model). See [switchyard spec 009](https://github.com/zenprocess/switchyard/blob/main/specs/009-pawbench-orchestration-axis/spec.md).
 
 <br>
 

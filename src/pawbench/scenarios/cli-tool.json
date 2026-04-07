@@ -1,8 +1,7 @@
 {
   "id": "cli-tool",
-  "name": "WordCount CLI Tool — Build and Test",
+  "name": "WordCount CLI Tool \u2014 Build and Test",
   "description": "Build a CLI tool 'wordcount' that reads files and outputs word, line, and character counts. One agent builds the tool, another writes tests. Tests pure tool-use throughput and code generation quality across parallel agents.",
-
   "agents": [
     {
       "id": "tool-builder",
@@ -12,37 +11,66 @@
           "turn": 1,
           "role": "user",
           "content": "Build a Python CLI tool called 'wordcount' that reads one or more files and outputs word, line, and character counts.\n\nRequirements:\n- Single file: wordcount.py\n- Usage: python wordcount.py [OPTIONS] FILE [FILE...]\n- Options: --words (-w), --lines (-l), --chars (-c). If none specified, show all three.\n- Output format per file: '<count_lines> <count_words> <count_chars> <filename>'\n- If multiple files, show a 'total' row at the end\n- If a file doesn't exist, print 'wordcount: <filename>: No such file' to stderr and continue\n- Exit code 0 if all files read successfully, 1 if any file failed\n- Use argparse for argument parsing\n\nUse write_file to create the tool.",
-          "tools": ["write_file", "run_command"],
+          "tools": [
+            "write_file",
+            "run_command"
+          ],
           "expect": {
             "tool_calls_min": 1,
-            "tool_name_any": ["write_file"],
-            "output_mentions": ["argparse", "wordcount"]
+            "tool_name_any": [
+              "write_file"
+            ],
+            "output_mentions": [
+              "argparse",
+              "wordcount"
+            ]
           }
         },
         {
           "turn": 2,
           "inject_tool_results": [
-            {"tool_call_id": "auto", "name": "write_file", "content": "{\"status\": \"ok\", \"path\": \"wordcount/wordcount.py\", \"bytes\": 2800}"}
+            {
+              "tool_call_id": "auto",
+              "name": "write_file",
+              "content": "{\"status\": \"ok\", \"path\": \"wordcount/wordcount.py\", \"bytes\": 2800}"
+            }
           ],
           "role": "tool_result",
           "content": "Tool written. Now add these features:\n1. --format json option that outputs results as JSON: {\"files\": [{\"name\": \"...\", \"lines\": N, \"words\": N, \"chars\": N}], \"total\": {\"lines\": N, \"words\": N, \"chars\": N}}\n2. Support reading from stdin when '-' is passed as filename\n3. --sort option: sort output by 'lines', 'words', or 'chars' (descending)\n\nUse write_file to update.",
-          "tools": ["write_file", "run_command"],
+          "tools": [
+            "write_file",
+            "run_command"
+          ],
           "expect": {
             "tool_calls_min": 1,
-            "output_mentions": ["json", "stdin", "sort"]
+            "output_mentions": [
+              "json",
+              "stdin",
+              "sort"
+            ]
           }
         },
         {
           "turn": 3,
           "inject_tool_results": [
-            {"tool_call_id": "auto", "name": "write_file", "content": "{\"status\": \"ok\", \"path\": \"wordcount/wordcount.py\", \"bytes\": 4200}"}
+            {
+              "tool_call_id": "auto",
+              "name": "write_file",
+              "content": "{\"status\": \"ok\", \"path\": \"wordcount/wordcount.py\", \"bytes\": 4200}"
+            }
           ],
           "role": "tool_result",
           "content": "Updated. Final step: add a --summary flag that only prints the total row (skip individual file rows). Also add --exclude-empty flag that skips files with 0 lines from the count. Make sure --exclude-empty works with --sort and --format json. Use write_file.",
-          "tools": ["write_file", "run_command"],
+          "tools": [
+            "write_file",
+            "run_command"
+          ],
           "expect": {
             "tool_calls_min": 1,
-            "output_mentions": ["summary", "exclude-empty"]
+            "output_mentions": [
+              "summary",
+              "exclude-empty"
+            ]
           }
         }
       ]
@@ -55,44 +83,77 @@
           "turn": 1,
           "role": "user",
           "content": "Write pytest tests for a Python CLI tool called 'wordcount'. The tool is at wordcount/wordcount.py.\n\nThe tool:\n- Takes one or more filenames as arguments\n- Options: --words (-w), --lines (-l), --chars (-c)\n- Output format: '<lines> <words> <chars> <filename>'\n- Shows total row for multiple files\n- Prints error to stderr for missing files, continues processing\n- Exit code 0 if all OK, 1 if any file failed\n\nWrite comprehensive tests covering:\n- Single file, all counts\n- Single file, individual count flags\n- Multiple files with total row\n- Missing file error handling\n- Empty file handling\n- File with only whitespace\n\nUse write_file to create test_wordcount.py. Use run_command to create sample test fixture files.",
-          "tools": ["write_file", "run_command"],
+          "tools": [
+            "write_file",
+            "run_command"
+          ],
           "expect": {
             "tool_calls_min": 1,
-            "tool_name_any": ["write_file"],
-            "output_mentions": ["pytest", "test"]
+            "tool_name_any": [
+              "write_file"
+            ],
+            "output_mentions": [
+              "pytest",
+              "test"
+            ]
           }
         },
         {
           "turn": 2,
           "inject_tool_results": [
-            {"tool_call_id": "auto", "name": "write_file", "content": "{\"status\": \"ok\", \"path\": \"wordcount/test_wordcount.py\", \"bytes\": 3200}"},
-            {"tool_call_id": "auto", "name": "run_command", "content": "{\"status\": \"ok\", \"stdout\": \"Created fixture files\", \"exit_code\": 0}"}
+            {
+              "tool_call_id": "auto",
+              "name": "write_file",
+              "content": "{\"status\": \"ok\", \"path\": \"wordcount/test_wordcount.py\", \"bytes\": 3200}"
+            },
+            {
+              "tool_call_id": "auto",
+              "name": "run_command",
+              "content": "{\"status\": \"ok\", \"stdout\": \"Created fixture files\", \"exit_code\": 0}"
+            }
           ],
           "role": "tool_result",
           "content": "Tests written. Now add tests for the new features:\n- --format json: verify JSON output structure and values\n- stdin support ('-' as filename): pipe content and verify counts\n- --sort option: verify descending sort by lines/words/chars\n\nUse write_file to update the test file.",
-          "tools": ["write_file", "run_command"],
+          "tools": [
+            "write_file",
+            "run_command"
+          ],
           "expect": {
             "tool_calls_min": 1,
-            "output_mentions": ["json", "stdin", "sort"]
+            "output_mentions": [
+              "json",
+              "stdin",
+              "sort"
+            ]
           }
         },
         {
           "turn": 3,
           "inject_tool_results": [
-            {"tool_call_id": "auto", "name": "write_file", "content": "{\"status\": \"ok\", \"path\": \"wordcount/test_wordcount.py\", \"bytes\": 5100}"}
+            {
+              "tool_call_id": "auto",
+              "name": "write_file",
+              "content": "{\"status\": \"ok\", \"path\": \"wordcount/test_wordcount.py\", \"bytes\": 5100}"
+            }
           ],
           "role": "tool_result",
           "content": "Updated. Final round: add tests for --summary and --exclude-empty flags. Test combinations: --summary with --format json, --exclude-empty with --sort, and all three together. Also add an integration test that runs the actual CLI via subprocess and checks stdout/stderr. Use write_file.",
-          "tools": ["write_file", "run_command"],
+          "tools": [
+            "write_file",
+            "run_command"
+          ],
           "expect": {
             "tool_calls_min": 1,
-            "output_mentions": ["summary", "exclude-empty", "subprocess"]
+            "output_mentions": [
+              "summary",
+              "exclude-empty",
+              "subprocess"
+            ]
           }
         }
       ]
     }
   ],
-
   "tools_schema": [
     {
       "type": "function",
@@ -102,10 +163,19 @@
         "parameters": {
           "type": "object",
           "properties": {
-            "path": {"type": "string", "description": "File path relative to workspace"},
-            "content": {"type": "string", "description": "File content to write"}
+            "path": {
+              "type": "string",
+              "description": "File path relative to workspace"
+            },
+            "content": {
+              "type": "string",
+              "description": "File content to write"
+            }
           },
-          "required": ["path", "content"]
+          "required": [
+            "path",
+            "content"
+          ]
         }
       }
     },
@@ -117,11 +187,17 @@
         "parameters": {
           "type": "object",
           "properties": {
-            "command": {"type": "string", "description": "Shell command to execute"}
+            "command": {
+              "type": "string",
+              "description": "Shell command to execute"
+            }
           },
-          "required": ["command"]
+          "required": [
+            "command"
+          ]
         }
       }
     }
-  ]
+  ],
+  "complexity_tier": "crud"
 }
