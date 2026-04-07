@@ -154,13 +154,13 @@ def main():
         "--orchestration",
         default=None,
         help="Comma-separated orchestration shapes (flat,waves,scatter-gather,team-mode,subagents). "
-             "Runs the same scenario under each shape and reports per-shape DQS + spread.",
+        "Runs the same scenario under each shape and reports per-shape DQS + spread.",
     )
     parser.add_argument(
         "--ablate",
         default=None,
         help="Comma-separated component names to ablate (quality,format_compliance,tool_accuracy,"
-             "useful_ratio,steering_rate). Recomputes DQS with each component pinned to perfect.",
+        "useful_ratio,steering_rate). Recomputes DQS with each component pinned to perfect.",
     )
     parser.add_argument(
         "--context-tier",
@@ -267,12 +267,14 @@ def main():
                         steering_rate=sr.steering_rate,
                     )
                     shape_dqs_list.append(bd.composite)
-                scenario_orchestration.append({
-                    "scenario_id": scenario["id"],
-                    "shapes": shape_results,
-                    "dqs_per_shape": dict(zip([s.value for s in orchestration_shapes], shape_dqs_list)),
-                    "dqs_spread": dqs_spread(shape_dqs_list),
-                })
+                scenario_orchestration.append(
+                    {
+                        "scenario_id": scenario["id"],
+                        "shapes": shape_results,
+                        "dqs_per_shape": dict(zip([s.value for s in orchestration_shapes], shape_dqs_list)),
+                        "dqs_spread": dqs_spread(shape_dqs_list),
+                    }
+                )
 
             # Per-scenario DQS
             sd = compute_dqs(
@@ -393,9 +395,8 @@ def main():
             report.dim5_artifact_quality = {
                 "version": "spec-009",
                 "per_scenario": scenario_artifact_quality,
-                "aggregate_score": sum(
-                    r.get("score", 0.0) for r in scenario_artifact_quality
-                ) / len(scenario_artifact_quality),
+                "aggregate_score": sum(r.get("score", 0.0) for r in scenario_artifact_quality)
+                / len(scenario_artifact_quality),
             }
         # B2 — quality_by_tier aggregate
         agg_tiers: dict[str, list[float]] = {}
@@ -441,7 +442,7 @@ def main():
                 "runs": args.verification_runs,
                 "agreement_rate": 1.0,
                 "notes": "deterministic scoring — agreement_rate is 1.0 by construction. "
-                         "Plug in an LLM judge to surface real verifier flake.",
+                "Plug in an LLM judge to surface real verifier flake.",
             }
 
     if args.json:

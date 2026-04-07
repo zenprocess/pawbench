@@ -1,4 +1,5 @@
 """Spec 009 / B4 — artifact quality analyzer tests."""
+
 from __future__ import annotations
 
 import json
@@ -56,8 +57,12 @@ def test_detect_language_dominant_extension():
 
 def test_score_python_clean_artifact_is_high():
     aq = ArtifactQuality(
-        language="python", lint_errors=0, type_errors=0,
-        cyclomatic_max=5, files_analyzed=3, analyzer="ruff+mypy+radon",
+        language="python",
+        lint_errors=0,
+        type_errors=0,
+        cyclomatic_max=5,
+        files_analyzed=3,
+        analyzer="ruff+mypy+radon",
     )
     assert _score_python(aq) == 1.0
 
@@ -69,8 +74,12 @@ def test_score_python_no_signal_returns_zero():
 
 def test_score_python_penalizes_lint_density():
     aq = ArtifactQuality(
-        language="python", lint_errors=20, type_errors=0,
-        cyclomatic_max=5, files_analyzed=2, analyzer="ruff",
+        language="python",
+        lint_errors=20,
+        type_errors=0,
+        cyclomatic_max=5,
+        files_analyzed=2,
+        analyzer="ruff",
     )
     # 20/2 = 10 errors/file → max lint penalty (0.4)
     assert _score_python(aq) == 0.6
@@ -78,8 +87,12 @@ def test_score_python_penalizes_lint_density():
 
 def test_score_python_clamps_below_zero():
     aq = ArtifactQuality(
-        language="python", lint_errors=200, type_errors=200,
-        cyclomatic_max=100, files_analyzed=1, analyzer="ruff+mypy+radon",
+        language="python",
+        lint_errors=200,
+        type_errors=200,
+        cyclomatic_max=100,
+        files_analyzed=1,
+        analyzer="ruff+mypy+radon",
     )
     assert _score_python(aq) == 0.0
 

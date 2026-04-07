@@ -71,6 +71,7 @@ def compute_dqs(
     steering_rate: float,
 ) -> DQSBreakdown:
     """Compute DQS from per-scenario aggregate metrics. All inputs in 0..1."""
+
     def _clamp(x: float) -> float:
         return max(0.0, min(1.0, float(x)))
 

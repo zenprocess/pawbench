@@ -1,4 +1,5 @@
 """Spec 009 — CLI helper tests (context tier, scenario load, scoring/by-tier)."""
+
 from __future__ import annotations
 
 import json

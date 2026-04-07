@@ -99,9 +99,9 @@ def export_servingcard(report: BenchmarkReport, output_path: str | Path) -> Path
 def export_servingcard_yaml(report: BenchmarkReport, output_path: str | Path) -> Path:
     """Export a BenchmarkReport as a ServingCard YAML file."""
     try:
-        import yaml
-    except ImportError:
-        raise ImportError("PyYAML required for YAML export: pip install pyyaml")
+        import yaml  # type: ignore[import-untyped]
+    except ImportError as e:
+        raise ImportError("PyYAML required for YAML export: pip install pyyaml") from e
 
     card = to_servingcard(report)
     path = Path(output_path)

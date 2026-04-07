@@ -1,4 +1,5 @@
 """Spec 009 / B1 — orchestration shape tests (no network)."""
+
 from __future__ import annotations
 
 import pytest
@@ -13,7 +14,11 @@ from pawbench.types import AgentResult, TurnResult
 
 def test_shape_vocabulary_is_canonical():
     assert {s.value for s in OrchestrationShape} == {
-        "flat", "waves", "scatter-gather", "team-mode", "subagents",
+        "flat",
+        "waves",
+        "scatter-gather",
+        "team-mode",
+        "subagents",
     }
 
 

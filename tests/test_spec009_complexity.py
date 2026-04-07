@@ -1,4 +1,5 @@
 """Spec 009 / B2 — complexity tier taxonomy tests."""
+
 from __future__ import annotations
 
 from pawbench.complexity import (

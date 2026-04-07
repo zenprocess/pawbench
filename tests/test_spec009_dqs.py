@@ -1,4 +1,5 @@
 """Spec 009 — DQS composite + spread tests."""
+
 from __future__ import annotations
 
 import pytest

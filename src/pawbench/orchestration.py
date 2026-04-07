@@ -149,8 +149,7 @@ def _build_merge_agent(scenario: dict[str, Any], parallel_results: list[AgentRes
         "You are the integration coordinator for the parallel workers below. "
         "Your job is to verify the work fits together as a coherent system, "
         "flag any integration gaps, and emit a final CACP block summarizing "
-        "the merged state. Do NOT rewrite the workers' code — only verify.\n\n"
-        + "\n\n".join(summaries)
+        "the merged state. Do NOT rewrite the workers' code — only verify.\n\n" + "\n\n".join(summaries)
     )
 
     return {
@@ -206,8 +205,12 @@ async def run_with_shape(
                 out.agents = await _run_parallel(session, endpoint, model, scenario, system_prompt)
                 merge_agent = _build_merge_agent(scenario, out.agents)
                 out.merge_turn = await run_agent(
-                    session, endpoint, model, merge_agent,
-                    scenario["tools_schema"], system_prompt,
+                    session,
+                    endpoint,
+                    model,
+                    merge_agent,
+                    scenario["tools_schema"],
+                    system_prompt,
                 )
             else:  # pragma: no cover - exhaustive
                 out.error = f"unhandled shape: {shape}"

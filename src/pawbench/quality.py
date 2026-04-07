@@ -154,12 +154,67 @@ def _materialize(files: dict[str, str], root: Path) -> list[Path]:
     return written
 
 
+def _count_ruff_issues(out: str) -> int:
+    try:
+        issues = json.loads(out) if out.strip() else []
+        return len(issues) if isinstance(issues, list) else 0
+    except json.JSONDecodeError:
+        return out.count('"code":')
+
+
+def _count_mypy_errors(out: str) -> int:
+    return sum(1 for line in out.splitlines() if ": error:" in line)
+
+
+def _max_radon_complexity(out: str) -> int:
+    if not out.strip():
+        return 0
+    try:
+        data = json.loads(out)
+    except json.JSONDecodeError:
+        return 0
+    max_cc = 0
+    for entries in data.values():
+        if not isinstance(entries, list):
+            continue
+        for entry in entries:
+            cc = entry.get("complexity", 0)
+            if isinstance(cc, (int, float)) and cc > max_cc:
+                max_cc = int(cc)
+    return max_cc
+
+
+def _run_python_analyzers(tools: dict[str, str | None], root: Path, aq: ArtifactQuality) -> None:
+    """Mutate `aq` with results from each available analyzer."""
+    if tools["ruff"]:
+        rc, out, _ = _run(
+            [tools["ruff"], "check", "--output-format=json", "--exit-zero", str(root)],
+            cwd=root,
+        )
+        if rc >= 0:
+            aq.lint_errors = _count_ruff_issues(out)
+
+    if tools["mypy"]:
+        rc, out, _ = _run(
+            [tools["mypy"], "--ignore-missing-imports", "--no-error-summary", "--no-color-output", str(root)],
+            cwd=root,
+            timeout=90,
+        )
+        if rc >= 0:
+            aq.type_errors = _count_mypy_errors(out)
+
+    if tools["radon"]:
+        rc, out, _ = _run([tools["radon"], "cc", "-j", "-s", str(root)], cwd=root)
+        if rc >= 0:
+            aq.cyclomatic_max = _max_radon_complexity(out)
+
+
 def _analyze_python(files: dict[str, str]) -> ArtifactQuality:
     py_files = {p: c for p, c in files.items() if p.endswith(".py")}
     if not py_files:
         return ArtifactQuality(language="python", notes="no python files")
 
-    tools = {
+    tools: dict[str, str | None] = {
         "ruff": _which("ruff"),
         "mypy": _which("mypy"),
         "radon": _which("radon"),
@@ -180,52 +235,11 @@ def _analyze_python(files: dict[str, str]) -> ArtifactQuality:
 
     with tempfile.TemporaryDirectory(prefix="pawbench-quality-") as td:
         root = Path(td)
-        paths = _materialize(py_files, root)
-        if not paths:
+        if not _materialize(py_files, root):
             aq.notes = "all paths rejected (escape attempts)"
             aq.analyzer = ""
             return aq
-
-        if tools["ruff"]:
-            rc, out, _ = _run(
-                [tools["ruff"], "check", "--output-format=json", "--exit-zero", str(root)],
-                cwd=root,
-            )
-            if rc >= 0:
-                try:
-                    issues = json.loads(out) if out.strip() else []
-                    aq.lint_errors = len(issues) if isinstance(issues, list) else 0
-                except json.JSONDecodeError:
-                    aq.lint_errors = out.count('"code":')
-
-        if tools["mypy"]:
-            rc, out, _ = _run(
-                [tools["mypy"], "--ignore-missing-imports", "--no-error-summary",
-                 "--no-color-output", str(root)],
-                cwd=root,
-                timeout=90,
-            )
-            if rc >= 0:
-                aq.type_errors = sum(1 for line in out.splitlines() if ": error:" in line)
-
-        if tools["radon"]:
-            rc, out, _ = _run(
-                [tools["radon"], "cc", "-j", "-s", str(root)],
-                cwd=root,
-            )
-            if rc >= 0 and out.strip():
-                try:
-                    data = json.loads(out)
-                    max_cc = 0
-                    for entries in data.values():
-                        if isinstance(entries, list):
-                            for e in entries:
-                                cc = e.get("complexity", 0)
-                                if isinstance(cc, (int, float)) and cc > max_cc:
-                                    max_cc = int(cc)
-                    aq.cyclomatic_max = max_cc
-                except json.JSONDecodeError:
-                    pass
+        _run_python_analyzers(tools, root, aq)
 
     aq.score = _score_python(aq)
     return aq
