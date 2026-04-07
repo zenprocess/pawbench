@@ -2,6 +2,7 @@
   "id": "pawstyle-dispatch",
   "name": "PawStyle by Lola — Dual Agent Dispatch (steering variant)",
   "description": "Two parallel agents build Lola's boutique dog apparel store. Backend gets a steering event at turn 3 for Lola-tested breed-specific sizing. Inspired by @_justlolathings.",
+  "complexity_tier": "cross_cutting",
 
   "agents": [
     {

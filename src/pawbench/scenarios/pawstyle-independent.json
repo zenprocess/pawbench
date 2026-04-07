@@ -1,8 +1,7 @@
 {
   "id": "pawstyle-independent",
-  "name": "PawStyle by Lola — Independent Streams (no cross-talk)",
+  "name": "PawStyle by Lola \u2014 Independent Streams (no cross-talk)",
   "description": "Frontend and backend work independently to build Lola's boutique dog apparel shop. No steering events. Tests pure parallel throughput + quality in isolation. Inspired by @_justlolathings.",
-
   "agents": [
     {
       "id": "ts-fullstack",
@@ -11,38 +10,64 @@
         {
           "turn": 1,
           "role": "user",
-          "content": "Build the PawStyle by Lola product listing page — a boutique dog apparel shop inspired by Lola (@_justlolathings), the most fashionable pup on Instagram.\n\nRequirements:\n- Single HTML file with embedded CSS/JS\n- Flexbox grid, 3 columns, responsive (1 col on mobile)\n- Header: \"PawStyle by Lola\" with tagline \"Where every pup is a fashionista\"\n- Purple gradient header (#7c3aed to #6d28d9)\n- 6 products on lavender (#e9d5ff) cards:\n  1. Lola's Signature Bandana - $12.00 (show a \"Lola's Pick\" badge)\n  2. Cozy Knit Sweater - $35.00\n  3. Rainy Day Raincoat - $45.00\n  4. Adventure Booties (4-pack) - $28.00\n  5. Dapper Bow Tie - $15.00 (show a \"Lola's Pick\" badge)\n  6. Walk-in-Style Harness - $40.00\n- Each card: name, price, gray placeholder image 300x200, box-shadow 0 2px 8px rgba(0,0,0,0.1)\n- Size selector per card: XS (Chihuahua), S (Pom), M (Beagle), L (Lab), XL (Golden)\n- Purple (#7c3aed) 'Add to Cart' button, white text, rounded corners\n- Footer with link to Lola's Instagram: https://www.instagram.com/_justlolathings/\n- Fetch from GET http://localhost:8080/api/products on load, fallback to hardcoded\n\nUse write_file for each file.",
-          "tools": ["write_file"],
+          "content": "Build the PawStyle by Lola product listing page \u2014 a boutique dog apparel shop inspired by Lola (@_justlolathings), the most fashionable pup on Instagram.\n\nRequirements:\n- Single HTML file with embedded CSS/JS\n- Flexbox grid, 3 columns, responsive (1 col on mobile)\n- Header: \"PawStyle by Lola\" with tagline \"Where every pup is a fashionista\"\n- Purple gradient header (#7c3aed to #6d28d9)\n- 6 products on lavender (#e9d5ff) cards:\n  1. Lola's Signature Bandana - $12.00 (show a \"Lola's Pick\" badge)\n  2. Cozy Knit Sweater - $35.00\n  3. Rainy Day Raincoat - $45.00\n  4. Adventure Booties (4-pack) - $28.00\n  5. Dapper Bow Tie - $15.00 (show a \"Lola's Pick\" badge)\n  6. Walk-in-Style Harness - $40.00\n- Each card: name, price, gray placeholder image 300x200, box-shadow 0 2px 8px rgba(0,0,0,0.1)\n- Size selector per card: XS (Chihuahua), S (Pom), M (Beagle), L (Lab), XL (Golden)\n- Purple (#7c3aed) 'Add to Cart' button, white text, rounded corners\n- Footer with link to Lola's Instagram: https://www.instagram.com/_justlolathings/\n- Fetch from GET http://localhost:8080/api/products on load, fallback to hardcoded\n\nUse write_file for each file.",
+          "tools": [
+            "write_file"
+          ],
           "expect": {
             "tool_calls_min": 1,
-            "tool_name_any": ["write_file"],
-            "output_mentions": ["html", "flexbox"]
+            "tool_name_any": [
+              "write_file"
+            ],
+            "output_mentions": [
+              "html",
+              "flexbox"
+            ]
           }
         },
         {
           "turn": 2,
           "inject_tool_results": [
-            {"tool_call_id": "auto", "name": "write_file", "content": "{\"status\": \"ok\", \"path\": \"pawstyle/index.html\", \"bytes\": 5200}"}
+            {
+              "tool_call_id": "auto",
+              "name": "write_file",
+              "content": "{\"status\": \"ok\", \"path\": \"pawstyle/index.html\", \"bytes\": 5200}"
+            }
           ],
           "role": "tool_result",
           "content": "File written. Lola's shop is looking great! Now add a slide-in Cart sidebar from the right. Shows item name, selected size (with breed label, e.g. 'M (Beagle)'), price, quantity +/- buttons, line totals, and a grand total. Cart persists in localStorage. Use write_file to update.",
-          "tools": ["write_file"],
+          "tools": [
+            "write_file"
+          ],
           "expect": {
             "tool_calls_min": 1,
-            "output_mentions": ["cart", "localStorage"]
+            "output_mentions": [
+              "cart",
+              "localStorage"
+            ]
           }
         },
         {
           "turn": 3,
           "inject_tool_results": [
-            {"tool_call_id": "auto", "name": "write_file", "content": "{\"status\": \"ok\", \"path\": \"pawstyle/index.html\", \"bytes\": 8100}"}
+            {
+              "tool_call_id": "auto",
+              "name": "write_file",
+              "content": "{\"status\": \"ok\", \"path\": \"pawstyle/index.html\", \"bytes\": 8100}"
+            }
           ],
           "role": "tool_result",
           "content": "Done. Final step: add a checkout flow. When user clicks 'Checkout' in cart, POST cart contents to http://localhost:8080/api/orders as JSON. Show a confirmation modal with order number (random 6-digit) and a paw-print icon. Include the message 'Lola approves your style!' in the confirmation. Handle API errors gracefully with a retry button. Use write_file.",
-          "tools": ["write_file"],
+          "tools": [
+            "write_file"
+          ],
           "expect": {
             "tool_calls_min": 1,
-            "output_mentions": ["checkout", "order", "POST"]
+            "output_mentions": [
+              "checkout",
+              "order",
+              "POST"
+            ]
           }
         }
       ]
@@ -54,44 +79,73 @@
         {
           "turn": 1,
           "role": "user",
-          "content": "Build the PawStyle by Lola REST API using Python stdlib http.server — the backend for Lola's boutique dog apparel shop.\n\nEndpoints:\n- GET /api/products — JSON array of 6 products with id, name, price, sizes, image, and lola_pick boolean:\n  1. Lola's Signature Bandana $12.00 (lola_pick: true)\n  2. Cozy Knit Sweater $35.00\n  3. Rainy Day Raincoat $45.00\n  4. Adventure Booties (4-pack) $28.00\n  5. Dapper Bow Tie $15.00 (lola_pick: true)\n  6. Walk-in-Style Harness $40.00\n  Sizes: [\"XS\",\"S\",\"M\",\"L\",\"XL\"]\n- GET /api/products/<id> — single product, 404 if not found\n- CORS headers on all responses\n- Port 8080\n\nUse write_file.",
-          "tools": ["write_file", "run_command"],
+          "content": "Build the PawStyle by Lola REST API using Python stdlib http.server \u2014 the backend for Lola's boutique dog apparel shop.\n\nEndpoints:\n- GET /api/products \u2014 JSON array of 6 products with id, name, price, sizes, image, and lola_pick boolean:\n  1. Lola's Signature Bandana $12.00 (lola_pick: true)\n  2. Cozy Knit Sweater $35.00\n  3. Rainy Day Raincoat $45.00\n  4. Adventure Booties (4-pack) $28.00\n  5. Dapper Bow Tie $15.00 (lola_pick: true)\n  6. Walk-in-Style Harness $40.00\n  Sizes: [\"XS\",\"S\",\"M\",\"L\",\"XL\"]\n- GET /api/products/<id> \u2014 single product, 404 if not found\n- CORS headers on all responses\n- Port 8080\n\nUse write_file.",
+          "tools": [
+            "write_file",
+            "run_command"
+          ],
           "expect": {
             "tool_calls_min": 1,
-            "tool_name_any": ["write_file"],
-            "output_mentions": ["products", "8080"]
+            "tool_name_any": [
+              "write_file"
+            ],
+            "output_mentions": [
+              "products",
+              "8080"
+            ]
           }
         },
         {
           "turn": 2,
           "inject_tool_results": [
-            {"tool_call_id": "auto", "name": "write_file", "content": "{\"status\": \"ok\", \"path\": \"pawstyle-api/server.py\", \"bytes\": 3500}"}
+            {
+              "tool_call_id": "auto",
+              "name": "write_file",
+              "content": "{\"status\": \"ok\", \"path\": \"pawstyle-api/server.py\", \"bytes\": 3500}"
+            }
           ],
           "role": "tool_result",
           "content": "Written. Now add POST /api/orders endpoint for Lola's checkout. Accepts JSON body {\"items\": [{\"product_id\": 1, \"size\": \"M\", \"quantity\": 2}]}. Validate product IDs exist (1-6), sizes are valid (XS/S/M/L/XL), quantities > 0. Return {\"order_id\": \"<random 6 digits>\", \"total\": <calculated total>, \"items_count\": <n>, \"message\": \"Lola approves your style!\"}. Return 400 with error message for invalid input. Use write_file.",
-          "tools": ["write_file", "run_command"],
+          "tools": [
+            "write_file",
+            "run_command"
+          ],
           "expect": {
             "tool_calls_min": 1,
-            "output_mentions": ["orders", "validate", "400"]
+            "output_mentions": [
+              "orders",
+              "validate",
+              "400"
+            ]
           }
         },
         {
           "turn": 3,
           "inject_tool_results": [
-            {"tool_call_id": "auto", "name": "write_file", "content": "{\"status\": \"ok\", \"path\": \"pawstyle-api/server.py\", \"bytes\": 5100}"}
+            {
+              "tool_call_id": "auto",
+              "name": "write_file",
+              "content": "{\"status\": \"ok\", \"path\": \"pawstyle-api/server.py\", \"bytes\": 5100}"
+            }
           ],
           "role": "tool_result",
-          "content": "Done. Final step: add GET /api/health returning {\"status\": \"ok\", \"store\": \"PawStyle by Lola\", \"uptime\": <seconds since start>, \"orders_count\": <total orders placed>, \"products_count\": 6}. Also add request logging — print each request method, path, status code, and response time in ms to stdout. Use write_file.",
-          "tools": ["write_file", "run_command"],
+          "content": "Done. Final step: add GET /api/health returning {\"status\": \"ok\", \"store\": \"PawStyle by Lola\", \"uptime\": <seconds since start>, \"orders_count\": <total orders placed>, \"products_count\": 6}. Also add request logging \u2014 print each request method, path, status code, and response time in ms to stdout. Use write_file.",
+          "tools": [
+            "write_file",
+            "run_command"
+          ],
           "expect": {
             "tool_calls_min": 1,
-            "output_mentions": ["health", "uptime", "logging"]
+            "output_mentions": [
+              "health",
+              "uptime",
+              "logging"
+            ]
           }
         }
       ]
     }
   ],
-
   "tools_schema": [
     {
       "type": "function",
@@ -101,10 +155,19 @@
         "parameters": {
           "type": "object",
           "properties": {
-            "path": {"type": "string", "description": "File path relative to workspace"},
-            "content": {"type": "string", "description": "File content to write"}
+            "path": {
+              "type": "string",
+              "description": "File path relative to workspace"
+            },
+            "content": {
+              "type": "string",
+              "description": "File content to write"
+            }
           },
-          "required": ["path", "content"]
+          "required": [
+            "path",
+            "content"
+          ]
         }
       }
     },
@@ -116,11 +179,17 @@
         "parameters": {
           "type": "object",
           "properties": {
-            "command": {"type": "string", "description": "Shell command to execute"}
+            "command": {
+              "type": "string",
+              "description": "Shell command to execute"
+            }
           },
-          "required": ["command"]
+          "required": [
+            "command"
+          ]
         }
       }
     }
-  ]
+  ],
+  "complexity_tier": "cross_cutting"
 }

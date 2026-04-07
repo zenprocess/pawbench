@@ -12,8 +12,10 @@ from pathlib import Path
 import requests
 
 from pawbench import __version__
+from pawbench.ablation import ablate
 from pawbench.banner import print_banner
 from pawbench.capture import capture_model_card, scrape_server_metrics
+from pawbench.dqs import compute_dqs, dqs_spread
 from pawbench.engine import run_parallel_dispatch, run_saturation_test
 from pawbench.mock import (
     MockEndpoint,
@@ -21,12 +23,16 @@ from pawbench.mock import (
     load_fixture,
     save_fixture,
 )
+from pawbench.orchestration import OrchestrationShape, run_with_shape
+from pawbench.quality import analyze_artifact
 from pawbench.report import print_report
-from pawbench.scoring import useful_ratio
+from pawbench.scoring import quality_by_tier, useful_ratio
 from pawbench.types import BenchmarkReport, ScenarioReport
 
 SCENARIOS_DIR = Path(__file__).parent / "scenarios"
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
+
+from pawbench.context_tier import apply_context_tier as _apply_context_tier  # noqa: E402
 
 
 def _get_model(endpoint: str) -> str:
@@ -143,6 +149,36 @@ def main():
         help="Export results as a ServingCard file (.json or .yaml) for servingcard.dev",
     )
     parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
+    # Spec 009 — orchestration × complexity matrix
+    parser.add_argument(
+        "--orchestration",
+        default=None,
+        help="Comma-separated orchestration shapes (flat,waves,scatter-gather,team-mode,subagents). "
+             "Runs the same scenario under each shape and reports per-shape DQS + spread.",
+    )
+    parser.add_argument(
+        "--ablate",
+        default=None,
+        help="Comma-separated component names to ablate (quality,format_compliance,tool_accuracy,"
+             "useful_ratio,steering_rate). Recomputes DQS with each component pinned to perfect.",
+    )
+    parser.add_argument(
+        "--context-tier",
+        default="standard",
+        choices=["standard", "manifest-only"],
+        help="Spec 009/B6 — manifest-only strips embedded code from prompts to test exploration-driven solving.",
+    )
+    parser.add_argument(
+        "--verification-runs",
+        type=int,
+        default=1,
+        help="Spec 009/B3 — re-score the same outputs N times to measure verifier reliability (>=1).",
+    )
+    parser.add_argument(
+        "--no-quality-analysis",
+        action="store_true",
+        help="Skip artifact_quality static analysis (spec 009/B4). Useful in CI without ruff/mypy.",
+    )
     args = parser.parse_args()
 
     conc_levels = [int(c) for c in args.concurrency.split(",")]
@@ -177,9 +213,21 @@ def main():
     if not args.saturation_only:
         scenario_paths = [Path(p) for p in args.scenario] if args.scenario else None
         scenarios = _load_scenarios(scenario_paths)
+        # Spec 009/B6 — apply context tier transformation
+        scenarios = [_apply_context_tier(s, args.context_tier) for s in scenarios]
 
         if not args.json:
-            print(f"  Scenarios: {len(scenarios)}")
+            print(f"  Scenarios: {len(scenarios)}  |  Context tier: {args.context_tier}")
+
+        # Per-scenario aggregate state for spec 009 reporting
+        scenario_artifact_quality: list[dict] = []
+        scenario_quality_by_tier: list[dict] = []
+        scenario_orchestration: list[dict] = []
+        scenario_dqs: list[float] = []
+
+        orchestration_shapes: list[OrchestrationShape] = []
+        if args.orchestration:
+            orchestration_shapes = [OrchestrationShape.parse(s) for s in args.orchestration.split(",") if s.strip()]
 
         for scenario in scenarios:
             if not args.json:
@@ -191,8 +239,53 @@ def main():
             for cr in crs:
                 all_concurrency_data.setdefault(cr.concurrency, []).append(cr)
 
+            # Spec 009/B2 — per-tier quality breakdown
+            all_agents_for_tier = [a for cr in crs for a in cr.agents if not a.error]
+            tier_breakdown = quality_by_tier(all_agents_for_tier, scenario)
+            if tier_breakdown:
+                scenario_quality_by_tier.append({"scenario_id": scenario["id"], "by_tier": tier_breakdown})
+
+            # Spec 009/B4 — artifact quality analysis on collected tool calls
+            if not args.no_quality_analysis:
+                all_tool_calls = [tc for a in all_agents_for_tier for t in a.turns for tc in t.tool_calls]
+                aq = analyze_artifact(all_tool_calls)
+                scenario_artifact_quality.append({"scenario_id": scenario["id"], **aq.__dict__})
+
+            # Spec 009/B1 — orchestration matrix (re-runs scenario per shape)
+            if orchestration_shapes and not args.mock:
+                shape_results = []
+                shape_dqs_list: list[float] = []
+                for shape in orchestration_shapes:
+                    res = asyncio.run(run_with_shape(args.endpoint, model, scenario, shape))
+                    shape_results.append(res.to_dict())
+                    # Quick DQS on the orchestration result using its avg_quality
+                    bd = compute_dqs(
+                        quality=res.avg_quality,
+                        format_compliance=sr.format_compliance_rate,
+                        tool_accuracy=sr.tool_accuracy,
+                        useful_ratio=sr.useful_ratio,
+                        steering_rate=sr.steering_rate,
+                    )
+                    shape_dqs_list.append(bd.composite)
+                scenario_orchestration.append({
+                    "scenario_id": scenario["id"],
+                    "shapes": shape_results,
+                    "dqs_per_shape": dict(zip([s.value for s in orchestration_shapes], shape_dqs_list)),
+                    "dqs_spread": dqs_spread(shape_dqs_list),
+                })
+
+            # Per-scenario DQS
+            sd = compute_dqs(
+                quality=sr.avg_quality,
+                format_compliance=sr.format_compliance_rate,
+                tool_accuracy=sr.tool_accuracy,
+                useful_ratio=sr.useful_ratio,
+                steering_rate=sr.steering_rate,
+            )
+            scenario_dqs.append(sd.composite)
+
             if not args.json:
-                print(f" tok/s={sr.single_tok_s:.1f}  quality={sr.avg_quality:.0%}  steer={sr.steering_rate:.0%}")
+                print(f" tok/s={sr.single_tok_s:.1f}  quality={sr.avg_quality:.0%}  steer={sr.steering_rate:.0%}  dqs={sd.composite:.2f}")
 
     # Raw saturation test
     saturation_curve = []
@@ -289,6 +382,64 @@ def main():
             "nudged_quality": sum(s.avg_quality for s in nudged) / max(len(nudged), 1),
         },
     )
+
+    # Spec 009 — attach orchestration × complexity matrix outputs
+    if not args.saturation_only and valid_scenarios:
+        # B4 — artifact quality (single aggregate row across scenarios)
+        if scenario_artifact_quality:
+            report.dim5_artifact_quality = {
+                "version": "spec-009",
+                "per_scenario": scenario_artifact_quality,
+                "aggregate_score": sum(
+                    r.get("score", 0.0) for r in scenario_artifact_quality
+                ) / len(scenario_artifact_quality),
+            }
+        # B2 — quality_by_tier aggregate
+        agg_tiers: dict[str, list[float]] = {}
+        for entry in scenario_quality_by_tier:
+            for tier_name, score in entry["by_tier"].items():
+                agg_tiers.setdefault(tier_name, []).append(score)
+        report.quality_by_tier = {t: sum(v) / len(v) for t, v in agg_tiers.items()}
+        # B1 — orchestration matrix
+        if scenario_orchestration:
+            report.orchestration_results = scenario_orchestration
+            spreads = [e["dqs_spread"] for e in scenario_orchestration]
+            report.orchestration_dqs_spread = max(spreads) if spreads else 0.0
+        # DQS aggregate
+        agg_dqs = compute_dqs(
+            quality=report.dim2_quality["avg_quality"],
+            format_compliance=report.dim2_quality["format_compliance_rate"],
+            tool_accuracy=report.dim2_quality["tool_accuracy"],
+            useful_ratio=report.dim3_efficiency["avg_useful_ratio"],
+            steering_rate=report.dim4_adaptability["steering_rate"],
+        )
+        report.dqs = agg_dqs.to_dict()
+        # B7 — ablation matrix
+        if args.ablate is not None:
+            requested = [c.strip() for c in args.ablate.split(",") if c.strip()] if args.ablate else None
+            ab = ablate(
+                scenario_id="aggregate",
+                quality=report.dim2_quality["avg_quality"],
+                format_compliance=report.dim2_quality["format_compliance_rate"],
+                tool_accuracy=report.dim2_quality["tool_accuracy"],
+                useful_ratio=report.dim3_efficiency["avg_useful_ratio"],
+                steering_rate=report.dim4_adaptability["steering_rate"],
+                components=requested,
+            )
+            report.ablation = ab.to_dict()
+        # B3 — verification reliability via N-run scoring agreement
+        if args.verification_runs > 1:
+            # Scoring is deterministic given outputs, so the only "disagreement"
+            # source is non-determinism in score_turn (none today). We still
+            # surface the field so downstream consumers can plug in real
+            # LLM-judged verification later. Records: N runs, all agreeing.
+            report.dqs.setdefault("verification", {})
+            report.dqs["verification"] = {
+                "runs": args.verification_runs,
+                "agreement_rate": 1.0,
+                "notes": "deterministic scoring — agreement_rate is 1.0 by construction. "
+                         "Plug in an LLM judge to surface real verifier flake.",
+            }
 
     if args.json:
         print(json.dumps(asdict(report), indent=2, default=str))

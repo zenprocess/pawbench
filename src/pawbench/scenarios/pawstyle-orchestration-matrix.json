@@ -1,0 +1,113 @@
+{
+  "id": "pawstyle-orchestration-matrix",
+  "name": "PawStyle by Lola — Orchestration × Complexity Matrix",
+  "description": "Four independent feature blocks for Lola's boutique. Designed to differentiate orchestration shapes (flat / waves / scatter-gather / team-mode / subagents) by exercising display, CRUD, transactional, and cross-cutting tiers in one scenario. Inspired by Fabian Wesner's One-Shot Shop Challenge — operationalizes spec 009 §B1.",
+  "complexity_tier": "cross_cutting",
+  "agents": [
+    {
+      "id": "display-tier",
+      "name": "Display Tier — Product Grid",
+      "complexity_tier": "display",
+      "turns": [
+        {
+          "turn": 1,
+          "role": "user",
+          "complexity_tier": "display",
+          "content": "Render a static HTML page that lists Lola's six bestsellers in a 3-column flexbox grid. Hardcoded data is fine — this is the read-only display tier. Each card shows name, price, and a 'Lola's Pick' badge for items 1 and 5. No JS, no API calls. Use write_file to create pawstyle/display.html.",
+          "tools": ["write_file"],
+          "expect": {
+            "tool_calls_min": 1,
+            "tool_name_any": ["write_file"],
+            "output_mentions": ["html", "flexbox", "lola"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "crud-tier",
+      "name": "CRUD Tier — Product API",
+      "complexity_tier": "crud",
+      "turns": [
+        {
+          "turn": 1,
+          "role": "user",
+          "complexity_tier": "crud",
+          "content": "Build a Python http.server REST API for PawStyle products. Endpoints: GET /api/products, GET /api/products/{id}, POST /api/products (validation: name required, price > 0), PUT /api/products/{id}, DELETE /api/products/{id}. Return 400 on validation failure, 404 on missing id. In-memory store is fine. Listen on port 8081. Write to pawstyle-api/crud.py.",
+          "tools": ["write_file"],
+          "expect": {
+            "tool_calls_min": 1,
+            "tool_name_any": ["write_file"],
+            "output_mentions": ["products", "validation", "crud"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "transactional-tier",
+      "name": "Transactional Tier — Checkout",
+      "complexity_tier": "transactional",
+      "turns": [
+        {
+          "turn": 1,
+          "role": "user",
+          "complexity_tier": "transactional",
+          "content": "Implement Lola's checkout flow. POST /api/checkout takes {cart: [{product_id, qty}], payment_token}. Steps that MUST roll back atomically on any failure: (1) reserve inventory, (2) charge payment (mock — fail if token starts with 'fail_'), (3) create order record, (4) decrement inventory. If step 2 fails, the reservation from step 1 must be released. If step 4 fails, the order from step 3 must be voided AND the charge refunded. Use a single in-memory transaction log so the rollback path is testable. Write to pawstyle-api/checkout.py.",
+          "tools": ["write_file"],
+          "expect": {
+            "tool_calls_min": 1,
+            "tool_name_any": ["write_file"],
+            "output_mentions": ["transaction", "rollback", "checkout"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "cross-cutting-tier",
+      "name": "Cross-Cutting Tier — Auth + Audit",
+      "complexity_tier": "cross_cutting",
+      "turns": [
+        {
+          "turn": 1,
+          "role": "user",
+          "complexity_tier": "cross_cutting",
+          "content": "Add session-token auth + audit log to Lola's API. Two concerns that span subsystems: (a) every request to /api/* must validate Bearer token via a shared verify_session() helper that reads from an in-memory session store; (b) every state-changing request (POST/PUT/DELETE) must append a row to audit.log with timestamp, user_id, action, resource. Also add POST /api/auth/login (returns token) and POST /api/auth/logout (invalidates). Write to pawstyle-api/auth.py and pawstyle-api/audit.py — two files, both required.",
+          "tools": ["write_file"],
+          "expect": {
+            "tool_calls_min": 2,
+            "tool_name_any": ["write_file"],
+            "output_mentions": ["auth", "audit", "session"]
+          }
+        }
+      ]
+    }
+  ],
+  "tools_schema": [
+    {
+      "type": "function",
+      "function": {
+        "name": "write_file",
+        "description": "Write content to a file, creating directories as needed",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "path": {"type": "string"},
+            "content": {"type": "string"}
+          },
+          "required": ["path", "content"]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "read_file",
+        "description": "Read a file from the workspace",
+        "parameters": {
+          "type": "object",
+          "properties": {"path": {"type": "string"}},
+          "required": ["path"]
+        }
+      }
+    }
+  ]
+}

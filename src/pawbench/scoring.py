@@ -6,7 +6,8 @@ import json
 import re
 from typing import Any, Callable
 
-from pawbench.types import TurnResult
+from pawbench.complexity import ComplexityTier, tier_for_turn
+from pawbench.types import AgentResult, TurnResult
 
 
 # ---------------------------------------------------------------------------
@@ -107,6 +108,51 @@ def score_turn(turn_spec: dict[str, Any], result: TurnResult) -> float:
 # ---------------------------------------------------------------------------
 # Efficiency metrics
 # ---------------------------------------------------------------------------
+
+
+def quality_by_tier(
+    agents: list[AgentResult],
+    scenario: dict[str, Any],
+) -> dict[str, float]:
+    """Aggregate per-tier quality across all agents in a scenario.
+
+    Spec 009 / B2 — stratifies quality by complexity tier so aggregate
+    numbers can't mask tier-specific cliffs. Tier resolution priority:
+    turn-level → agent-level → scenario-level → heuristic inference.
+    """
+    scenario_tier = ComplexityTier.parse(scenario.get("complexity_tier"))
+    by_tier: dict[str, list[float]] = {}
+    agent_lookup = {a["id"]: a for a in scenario.get("agents", [])}
+
+    for agent_result in agents:
+        if agent_result.error:
+            continue
+        agent_spec = agent_lookup.get(agent_result.agent_id, {})
+        # Strip parallel-dispatch suffix like "ts-fullstack-3" → "ts-fullstack"
+        if not agent_spec:
+            for stem in agent_lookup:
+                if agent_result.agent_id.startswith(stem):
+                    agent_spec = agent_lookup[stem]
+                    break
+        agent_tier = ComplexityTier.parse(agent_spec.get("complexity_tier"))
+
+        for turn_result in agent_result.turns:
+            turn_idx = turn_result.turn - 1
+            turn_spec = (
+                agent_spec.get("turns", [{}])[turn_idx]
+                if 0 <= turn_idx < len(agent_spec.get("turns", []))
+                else {}
+            )
+            tier = (
+                ComplexityTier.parse(turn_spec.get("complexity_tier"))
+                or agent_tier
+                or scenario_tier
+                or tier_for_turn(turn_spec)
+            )
+            turn_result.complexity_tier = tier.value
+            by_tier.setdefault(tier.value, []).append(turn_result.quality_score)
+
+    return {tier: sum(scores) / len(scores) for tier, scores in by_tier.items() if scores}
 
 
 def useful_ratio(text: str, tool_calls: list[dict[str, Any]] | None = None) -> float:
