@@ -123,9 +123,10 @@ async def _run_parallel(
     raw = await asyncio.gather(*tasks, return_exceptions=True)
     results: list[AgentResult] = []
     for item in raw:
-        if isinstance(item, Exception):
+        if isinstance(item, BaseException):
             results.append(AgentResult(agent_id="error", agent_name="error", error=str(item)[:200]))
         else:
+            assert isinstance(item, AgentResult)
             results.append(item)
     return results
 

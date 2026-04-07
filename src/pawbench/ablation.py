@@ -22,7 +22,6 @@ from typing import Any
 
 from pawbench.dqs import DQSBreakdown, compute_dqs
 
-
 # Components that can be ablated. Each maps to a kwarg of compute_dqs that
 # gets pinned to a "neutral" value (1.0 = component contributes its max,
 # i.e., it's invisible to the comparison; 0.0 = component is silenced).

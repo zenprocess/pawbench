@@ -285,7 +285,10 @@ def main():
             scenario_dqs.append(sd.composite)
 
             if not args.json:
-                print(f" tok/s={sr.single_tok_s:.1f}  quality={sr.avg_quality:.0%}  steer={sr.steering_rate:.0%}  dqs={sd.composite:.2f}")
+                print(
+                    f" tok/s={sr.single_tok_s:.1f}  quality={sr.avg_quality:.0%}"
+                    f"  steer={sr.steering_rate:.0%}  dqs={sd.composite:.2f}"
+                )
 
     # Raw saturation test
     saturation_curve = []
