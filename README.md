@@ -43,7 +43,6 @@ Works against any OpenAI-compatible endpoint — vLLM, TGI, OpenAI, Ollama, LMSt
 > ([announcement](https://www.linkedin.com/posts/fabian-wesner_oneshotshop-share-7442096217976897536-SRI9/)) —
 > the study that showed orchestration architecture beats model choice (Team Mode 85% vs Sub-Agents 57% on the same model).
 > Pawbench's orchestration × complexity matrix operationalizes that finding inside a reproducible benchmark.
-> See [spec 009](https://github.com/zenprocess/switchyard/blob/main/specs/009-pawbench-orchestration-axis/spec.md).
 
 <br>
 
@@ -113,7 +112,11 @@ pawbench --verification-runs 2
 pawbench --no-quality-analysis
 ```
 
-The orchestration matrix scenario (`pawstyle-orchestration-matrix`) is designed to differentiate shapes — four independent feature blocks, one per complexity tier. Inspired by Fabian Wesner's [One-Shot Shop Challenge](https://agentic-engineers.dev) (orchestration > model). See [switchyard spec 009](https://github.com/zenprocess/switchyard/blob/main/specs/009-pawbench-orchestration-axis/spec.md).
+The orchestration matrix scenario (`pawstyle-orchestration-matrix`) is designed to differentiate shapes — four independent feature blocks, one per complexity tier. Inspired by Fabian Wesner's [One-Shot Shop Challenge](https://agentic-engineers.dev) (orchestration > model).
+
+### What "spec 009" means here
+
+The implementation follows an internal design doc colloquially called "spec 009" that defines the orchestration shape vocabulary, complexity tier vocabulary, the `fixture_gap` terminal status, `verification_runs[]`, and `artifact_quality` schema. The vocabularies are normative in [Axiom §17](https://github.com/zenprocess/axiom/blob/main/spec.md); Pawbench is the reference implementation.
 
 <br>
 
