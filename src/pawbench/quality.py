@@ -124,14 +124,30 @@ def _which(name: str) -> str | None:
 
 
 def _run(cmd: list[str], cwd: Path, timeout: int = 60) -> tuple[int, str, str]:
+    """Run a static-analyzer subprocess.
+
+    Security review (spec 009 / B4):
+      - shell=False (default) — no shell metacharacter expansion
+      - cmd is a list of explicit arguments built from `shutil.which()` paths
+        plus a single trusted scratch directory path; no user-controlled
+        token reaches argv
+      - cwd is the temporary scratch dir created by tempfile.TemporaryDirectory
+      - timeout is bounded; OSError/TimeoutExpired are caught
+      - capture_output=True — no stdio leak to the parent process
+    The user-controlled artifact bytes never reach this function as argv;
+    they're written to disk first by _materialize and addressed by file path.
+    """
+    if not cmd or not isinstance(cmd[0], str):
+        return -1, "", "invalid command"
     try:
-        proc = subprocess.run(
+        proc = subprocess.run(  # nosec B603 — argv-list, fixed scratch cwd, no shell
             cmd,
             cwd=str(cwd),
             capture_output=True,
             text=True,
             timeout=timeout,
             check=False,
+            shell=False,
         )
         return proc.returncode, proc.stdout, proc.stderr
     except (subprocess.TimeoutExpired, FileNotFoundError, OSError) as e:
@@ -139,15 +155,22 @@ def _run(cmd: list[str], cwd: Path, timeout: int = 60) -> tuple[int, str, str]:
 
 
 def _materialize(files: dict[str, str], root: Path) -> list[Path]:
-    """Write files to disk under root, return absolute paths."""
+    """Write files to disk under root, return absolute paths.
+
+    Security review: every relative path is resolved and re-anchored under
+    `root`; any path that escapes the scratch dir (via `..`, absolute path,
+    or symlink trick) is silently rejected. Content bytes are written
+    verbatim because the analyzers expect them as source files; no
+    interpretation happens here.
+    """
     written: list[Path] = []
+    root_resolved = root.resolve()
     for rel, content in files.items():
-        # Reject path escapes — analyzer scratch dir must stay sealed.
         target = (root / rel).resolve()
         try:
-            target.relative_to(root.resolve())
+            target.relative_to(root_resolved)
         except ValueError:
-            continue
+            continue  # path escape attempt — silently drop
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text(content, encoding="utf-8")
         written.append(target)
