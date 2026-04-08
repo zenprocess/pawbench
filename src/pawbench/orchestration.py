@@ -125,9 +125,16 @@ async def _run_parallel(
     for item in raw:
         if isinstance(item, BaseException):
             results.append(AgentResult(agent_id="error", agent_name="error", error=str(item)[:200]))
-        else:
-            assert isinstance(item, AgentResult)
+        elif isinstance(item, AgentResult):
             results.append(item)
+        else:
+            # asyncio.gather only returns AgentResult or exceptions here, but
+            # be explicit instead of asserting (asserts get stripped under -O).
+            results.append(
+                AgentResult(
+                    agent_id="error", agent_name="error", error=f"unexpected result type: {type(item).__name__}"
+                )
+            )
     return results
 
 
